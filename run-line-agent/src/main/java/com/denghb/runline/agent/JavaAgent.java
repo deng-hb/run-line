@@ -1,27 +1,22 @@
 package com.denghb.runline.agent;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.util.Properties;
 
 public class JavaAgent {
 
     public static void premain(String agentArgs, Instrumentation inst) {
+
         System.out.println("premain agentArgs: " + agentArgs);
-        String propertiesPath = agentArgs;
-        if (null == agentArgs || agentArgs.length() == 0) {
-            propertiesPath = System.getProperty("user.home") + "/runline.properties";
+        if (null == agentArgs || agentArgs.split(";").length != 3) {
+            throw new IllegalArgumentException("-javaagent:/run-line-agent.jar=${data dir};${git branch};${base packages}");
         }
-        try {
-            Properties properties = new Properties();
-            properties.load(new FileInputStream(propertiesPath));
-            String packages = properties.getProperty("packages");
-            inst.addTransformer(new RunLineTransformer(packages), true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String[] split = agentArgs.split(";");
+
+        RunLine.WORKSPACE = split[0];
+        RunLine.BRANCH_NAME = split[1];
+        RunLine.PACKAGES = split[2];
+
+        inst.addTransformer(new RunLineTransformer(), true);
     }
 
     public static void agentmain(String agentArgs, Instrumentation inst) {

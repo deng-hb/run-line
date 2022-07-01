@@ -16,8 +16,8 @@ public class RunLineTransformer implements ClassFileTransformer {
 
     private List<String> packageList = new ArrayList<>();
 
-    public RunLineTransformer(String packages) {
-        String[] ss = packages.split(",");
+    public RunLineTransformer() {
+        String[] ss = RunLine.PACKAGES.split(",");
         for (String s : ss) {
             String s1 = s.replaceAll("\\.", "/");
             packageList.add(s1);

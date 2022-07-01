@@ -7,11 +7,19 @@ import java.util.Date;
 
 public class RunLine {
 
-    public final static String WORKSPACE = System.getProperty("user.home") + "/runline";
+    public static String WORKSPACE = System.getProperty("user.home");
+    public static String BRANCH_NAME = "master";
+    public static String PACKAGES = "";
+
     public final static String CLASS_PATH = RunLine.class.getName().replace(".", "/");
     public final static String METHOD_NAME = "log";
     public final static String METHOD_DESC = "(Ljava/lang/String;)V";
 
+    /**
+     * com/denghb/runline/server/RunLineServer#lambda$main$0:21
+     *
+     * @param message
+     */
     public static void log(String message) {
         System.out.println(message);
 
@@ -20,14 +28,11 @@ public class RunLine {
 
         String className = split[0];
         String methodLine = split[1];
-        String[] split2 = methodLine.split(":");
-        String methodName = split2[0];
-        String line = split2[1];
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         String date = sdf.format(new Date());
 
-        String filePath = String.format("%s/%s", WORKSPACE, className);
+        String filePath = String.format("%s/runline/%s/%s", WORKSPACE, BRANCH_NAME, className);
         File file = new File(filePath);
         if (!file.getParentFile().exists()) {
             file.getParentFile().mkdirs();

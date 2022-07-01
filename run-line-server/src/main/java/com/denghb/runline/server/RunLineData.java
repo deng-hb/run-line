@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class RunLineData {
-    public final static String WORKSPACE = System.getProperty("user.home") + "/runline";
+    public final static String WORKSPACE = "/Users/mac/runline/dev";
 
     public static Map<String, Set<String>> DATA = new HashMap<>();
 
@@ -25,6 +25,7 @@ public class RunLineData {
             read(file.listFiles());
         } else {
             String absolutePath = file.getAbsolutePath();
+            System.out.println(absolutePath);
             String className = absolutePath.substring(WORKSPACE.length() + 1);
             System.out.println(className);
             Set<String> lines = DATA.computeIfAbsent(className, k -> new HashSet<>());

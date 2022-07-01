@@ -13,6 +13,8 @@ import java.util.concurrent.Executors;
 public class RunLineServer {
 
     public static void main(String[] args) throws IOException {
+        System.out.println(args);
+        System.out.println(System.getenv());
         HttpServer server = HttpServer.create(new InetSocketAddress(9966), 0);
         server.setExecutor(Executors.newCachedThreadPool());
         server.createContext("/", (httpExchange) -> {
