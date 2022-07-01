@@ -11,8 +11,6 @@ public class App {
 
         System.out.println("Hello World!");
 
-        System.out.println(args);
-
         new Thread(() -> {
             System.out.println("runnable");
         }).run();// invoke
@@ -20,6 +18,7 @@ public class App {
         new Hello().say();
 
         new Hello2().say();
+
     }
 
     static class Hello2 {
