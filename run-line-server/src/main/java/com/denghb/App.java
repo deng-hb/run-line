@@ -18,6 +18,7 @@ public class App {
         }).run();// invoke
 
         new Hello().say();
+
         new Hello2().say();
     }
 
