@@ -5,7 +5,7 @@ import org.junit.Test;
 public class GitTest {
 
     @Test
-    void test() {
+    public void test() {
         System.out.println("git test");
     }
 }

@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class RunLineData {
-    public final static String WORKSPACE = "/Users/mac/runline/dev";
+    public final static String WORKSPACE = "/Users/mac/.runline/example/dev";
 
     public static Map<String, Set<String>> DATA = new HashMap<>();
 
@@ -22,7 +22,7 @@ public class RunLineData {
 
     public static void read(File file) {
         if (file.isDirectory()) {
-            read(file.listFiles());
+            reads(file.listFiles());
         } else {
             String absolutePath = file.getAbsolutePath();
             System.out.println(absolutePath);
@@ -31,10 +31,9 @@ public class RunLineData {
             Set<String> lines = DATA.computeIfAbsent(className, k -> new HashSet<>());
 
             try (FileReader fileReader = new FileReader(file);
-                 LineNumberReader reader = new LineNumberReader(fileReader);
-                 BufferedReader b = new BufferedReader(fileReader);) {
+                 LineNumberReader reader = new LineNumberReader(fileReader)) {
                 String line;
-                while ((line = b.readLine()) != null) {
+                while ((line = reader.readLine()) != null) {
                     // 2022-07-02 00:28:41.602#lambda$main$0:20
                     String lineNumber = line.substring(line.lastIndexOf(":") + 1);
                     lines.add(lineNumber);
@@ -47,7 +46,7 @@ public class RunLineData {
 
     }
 
-    public static void read(File[] files) {
+    public static void reads(File[] files) {
         for (File file : files) {
             read(file);
         }

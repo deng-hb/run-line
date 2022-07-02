@@ -9,18 +9,16 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class RunLineTransformer implements ClassFileTransformer {
 
-    private List<String> packageList = new ArrayList<>();
+    private final List<String> packageList = new ArrayList<>();
 
     public RunLineTransformer() {
         String[] ss = RunLine.PACKAGES.split(",");
         for (String s : ss) {
-            String s1 = s.replaceAll("\\.", "/");
-            packageList.add(s1);
+            packageList.add(s.replaceAll("\\.", "/"));
         }
 
     }
@@ -28,9 +26,11 @@ public class RunLineTransformer implements ClassFileTransformer {
     @Override
     public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
         // System.out.println(className);
-
+        if (className.equals(RunLine.class.getName())) {
+            return null;
+        }
         for (String p : packageList) {
-            if (className.startsWith(p) && !className.equals(RunLine.class.getName())) {
+            if (className.startsWith(p)) {
                 try {
                     ClassReader classReader = new ClassReader(className);
                     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
