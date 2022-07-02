@@ -70,8 +70,8 @@
 <!--                            <addClasspath>true</addClasspath>-->
 <!--                        </manifest>-->
 <!--                        <manifestEntries>-->
-<!--                            <Premain-Class>com.denghb.runline.agent.JavaAgent</Premain-Class>-->
-<!--                            <Agent-Class>com.denghb.runline.agent.JavaAgent</Agent-Class>-->
+<!--                            <Premain-Class>com.denghb.runline.agent.RunLineAgent</Premain-Class>-->
+<!--                            <Agent-Class>com.denghb.runline.agent.RunLineAgent</Agent-Class>-->
 <!--                            <Can-Redefine-Classes>true</Can-Redefine-Classes>-->
 <!--                            <Can-Retransform-Classes>true</Can-Retransform-Classes>-->
 <!--                        </manifestEntries>-->
@@ -87,8 +87,8 @@
                     </descriptorRefs>
                     <archive>
                         <manifestEntries>
-                            <Premain-Class>com.denghb.runline.agent.JavaAgent</Premain-Class>
-                            <Agent-Class>com.denghb.runline.agent.JavaAgent</Agent-Class>
+                            <Premain-Class>com.denghb.runline.agent.RunLineAgent</Premain-Class>
+                            <Agent-Class>com.denghb.runline.agent.RunLineAgent</Agent-Class>
                             <Can-Redefine-Classes>true</Can-Redefine-Classes>
                             <Can-Retransform-Classes>true</Can-Retransform-Classes>
                             <Can-Set-Native-Method-Prefix>true</Can-Set-Native-Method-Prefix>

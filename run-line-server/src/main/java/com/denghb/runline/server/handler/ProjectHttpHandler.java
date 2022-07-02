@@ -2,6 +2,8 @@ package com.denghb.runline.server.handler;
 
 import com.denghb.runline.server.Consts;
 import com.denghb.runline.server.RunLineServer;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -26,7 +28,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ProjectHandler {
+public class ProjectHttpHandler extends BaseHttpHandler {
+
+
+    @Override
+    public void handle(HttpExchange httpExchange) throws IOException {
+        String path = getPath(httpExchange);
+        Object res = handle(path);
+        outJson(httpExchange, res);
+    }
 
     public Object handle(String path) {
         Object res = "";

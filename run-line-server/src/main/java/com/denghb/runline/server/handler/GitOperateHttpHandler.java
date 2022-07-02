@@ -1,13 +1,23 @@
 package com.denghb.runline.server.handler;
 
 import com.denghb.runline.server.RunLineServer;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 
 import java.io.File;
+import java.io.IOException;
 
-public class GitHandler {
+public class GitOperateHttpHandler extends BaseHttpHandler {
 
+
+    @Override
+    public void handle(HttpExchange httpExchange) throws IOException {
+        String path = getPath(httpExchange);
+        Object res = handle(path);
+        outJson(httpExchange, res);
+    }
 
     public Object handle(String path) {
         try {

@@ -23,11 +23,6 @@ public class AppTest {
 
     @Test
     public void test() throws Exception {
-        // 测试参数
-        RunLine.WORKSPACE = "/Users/mac";
-        RunLine.PROJECT = "test";
-        RunLine.BRANCH = "master";
-        RunLine.PACKAGES = "com.denghb";
 
         String className = Hello.class.getName().replaceAll("\\.", "/");
 

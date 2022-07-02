@@ -1,0 +1,100 @@
+package com.denghb.runline.agent;
+
+import com.sun.net.httpserver.HttpServer;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.instrument.Instrumentation;
+import java.net.InetSocketAddress;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Executors;
+
+public class RunLineAgent {
+
+    private static String workspace;
+    private static String project;
+    private static String branch;
+
+    public static void premain(String agentArgs, Instrumentation inst) {
+        System.out.println("premain agentArgs: " + agentArgs);
+
+        if (null == agentArgs || agentArgs.split(";").length != 5) {
+            throw new IllegalArgumentException("-javaagent:/path/run-line-agent.jar=${workspace};${project};${branch};${packages};${server}");
+        }
+        String[] split = agentArgs.split(";");
+
+        workspace = split[0];
+        project = split[1];
+        branch = split[2];
+
+        String packages = split[3];
+        String server = split[4];
+
+
+        inst.addTransformer(new RunLineTransformer(packages), true);
+
+        int port = 17950 + new Random().nextInt(99);
+        String url = String.format("http://%s:9966/registry/%s/%s/%s/%d", server, project, branch, packages, port);
+        System.out.println(url);
+
+        // 10s 定时发送当前项目信息给服务端
+        new Timer().schedule(new TimerTask() {
+
+            @Override
+            public void run() {
+                try {
+                    URLConnection urlConnection = new URL(url).openConnection();
+                    InputStream inputStream = urlConnection.getInputStream();
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }, 0, 10 * 1000);
+
+        // 提供统计服务
+        try {
+            HttpServer httpServer = HttpServer.create(new InetSocketAddress(port), 0);
+            httpServer.setExecutor(Executors.newCachedThreadPool());
+            httpServer.createContext("/runline", new RunLineHttpHandler(workspace));
+            httpServer.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void agentmain(String agentArgs, Instrumentation inst) {
+        System.out.println("agentmain agentArgs: " + agentArgs);
+    }
+
+    /**
+     * com/denghb/runline/server/RunLineServer/lambda$main$0/21
+     *
+     * @param data
+     */
+    public static void stat(String data) {
+        System.out.println(data);
+
+        try {
+
+            // 创建文件夹
+            String filePath = String.format("%s/.runline/%s/%s/%s", workspace, project, branch, data);
+            File file = new File(filePath);
+            if (!file.getParentFile().exists()) {
+                file.getParentFile().mkdirs();
+            }
+
+            // 创建文件
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}

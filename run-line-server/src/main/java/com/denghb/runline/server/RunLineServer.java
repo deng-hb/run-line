@@ -1,15 +1,14 @@
 package com.denghb.runline.server;
 
 
-import com.denghb.runline.server.handler.GitHandler;
-import com.denghb.runline.server.handler.ProjectHandler;
+import com.denghb.runline.server.handler.BaseHttpHandler;
+import com.denghb.runline.server.handler.GitOperateHttpHandler;
+import com.denghb.runline.server.handler.ProjectHttpHandler;
+import com.denghb.runline.server.handler.RegistryHttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
 
@@ -26,53 +25,10 @@ public class RunLineServer {
 
         HttpServer server = HttpServer.create(new InetSocketAddress(9966), 0);
         server.setExecutor(Executors.newCachedThreadPool());
-        server.createContext("/", (httpExchange) -> {
-            String path = httpExchange.getRequestURI().getPath();
-            System.out.printf("http:%s\n", path);
-
-            Object res = null;
-            if (path.startsWith("/git")) {
-                res = new GitHandler().handle(path);
-            } else if (path.startsWith("/project")) {
-                res = new ProjectHandler().handle(path);
-            }
-
-            if (null != res) {
-                httpExchange.sendResponseHeaders(200, 0);
-                httpExchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
-                try (OutputStream out = httpExchange.getResponseBody()) {
-                    out.write(res.toString().getBytes(StandardCharsets.UTF_8));
-                }
-                return;// end
-            }
-
-            // static file
-            if ("/".equals(path)) {
-                path = "/index.html";
-            }
-
-            String webFile = String.format("webroot%s", path);
-
-            try (InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream(webFile);
-                 OutputStream out = httpExchange.getResponseBody()) {
-
-                if (null == in) {
-                    httpExchange.sendResponseHeaders(404, 0);
-                } else {
-                    httpExchange.sendResponseHeaders(200, 0);
-
-                    byte[] buffer = new byte[1024];
-                    int len;
-                    while ((len = in.read(buffer)) != -1) {
-                        out.write(buffer, 0, len);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-
-        });
+        server.createContext("/", new BaseHttpHandler());
+        server.createContext("/git", new GitOperateHttpHandler());
+        server.createContext("/project", new ProjectHttpHandler());
+        server.createContext("/registry", new RegistryHttpHandler());
         server.start();
     }
 }
