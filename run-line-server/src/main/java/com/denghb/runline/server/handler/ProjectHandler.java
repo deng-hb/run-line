@@ -29,7 +29,7 @@ import java.util.Set;
 public class ProjectHandler {
 
     public Object handle(String path) {
-        Object res = null;
+        Object res = "";
         if (path.startsWith("/projects")) {
             res = projects();// http://localhost:9966/projects
         } else if (path.startsWith("/project/") && path.endsWith(".java")) {

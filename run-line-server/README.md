@@ -57,7 +57,7 @@ ok
 
 
 ### git clone 
-org.eclipse.jgit.api.errors.TransportException: git@xxx Auth fail -> [Help 1]
+org.eclipse.jgit.api.errors.TransportException: git@xxx Auth fail
 
 `vim ~/.ssh/config` file to this
 ```
