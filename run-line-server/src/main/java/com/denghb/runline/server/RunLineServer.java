@@ -2,9 +2,7 @@ package com.denghb.runline.server;
 
 
 import com.denghb.runline.server.handler.GitHandler;
-import com.denghb.runline.server.handler.ProjectFileHttpHandler;
-import com.denghb.runline.server.handler.ProjectPathHttpHandler;
-import com.denghb.runline.server.handler.ProjectsHttpHandler;
+import com.denghb.runline.server.handler.ProjectHandler;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
@@ -33,14 +31,10 @@ public class RunLineServer {
             System.out.printf("http:%s\n", path);
 
             Object res = null;
-            if (path.startsWith("/git/")) {
+            if (path.startsWith("/git")) {
                 res = new GitHandler().handle(path);
-            } else if (path.equals("/projects")) {
-                res = new ProjectsHttpHandler().handle();
-            } else if (path.startsWith("/project/") && path.endsWith(".java")) {
-                res = new ProjectFileHttpHandler().handle(path);
-            } else if (path.startsWith("/project/")) {
-                res = new ProjectPathHttpHandler().handle(path);
+            } else if (path.startsWith("/project")) {
+                res = new ProjectHandler().handle(path);
             }
 
             if (null != res) {

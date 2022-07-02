@@ -3,6 +3,7 @@ package com.denghb.runline.server.handler;
 import com.denghb.runline.server.Consts;
 import com.denghb.runline.server.RunLineServer;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.Edit;
@@ -11,6 +12,7 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.patch.FileHeader;
+import org.eclipse.jgit.transport.RemoteConfig;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.json.JSONArray;
@@ -24,10 +26,82 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ProjectFileHttpHandler {
+public class ProjectHandler {
 
-    // http://localhost:9966/project/km/src/main/java/com/denghb/km/http/StatHttpHandler.java
-    public JSONObject handle(String path) {
+    public Object handle(String path) {
+        Object res = null;
+        if (path.startsWith("/projects")) {
+            res = projects();// http://localhost:9966/projects
+        } else if (path.startsWith("/project/") && path.endsWith(".java")) {
+            res = projectFile(path);
+        } else if (path.startsWith("/project/")) {
+            res = projectPath(path);// http://localhost:9966/project/run-line
+        }
+        return res;
+    }
+
+    // 已经clone下来的项目
+    public JSONArray projects() {
+        JSONArray jsonArray = new JSONArray();
+        File file = new File(String.format("%s/runline", RunLineServer.WORKSPACE));
+        if (file.exists() && file.isDirectory()) {
+            File[] files = file.listFiles();
+            for (File f : files) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("name", f.getName());
+
+                jsonObject.put("git", getRemoteUrl(f));
+                jsonArray.put(jsonObject);
+            }
+        }
+
+        return jsonArray;
+    }
+
+    private String getRemoteUrl(File file) {
+        try {
+            Git git = Git.open(file);
+            List<RemoteConfig> call = git.remoteList().call();
+            return call.get(0).getURIs().get(0).toString();
+        } catch (IOException | GitAPIException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // 项目目录
+    public JSONObject projectPath(String path) {
+        JSONObject jsonObject = new JSONObject();
+        String projectPath = path.replace("/project", String.format("%s/runline", RunLineServer.WORKSPACE));
+        String projectName = projectPath.substring(projectPath.lastIndexOf("/") + 1);
+
+        File file = new File(projectPath);
+        JSONObject subJsonObject = readFiles(file.listFiles());
+        jsonObject.put(projectName, subJsonObject);
+        return jsonObject;
+    }
+
+    // 文件目录
+    private JSONObject readFiles(File[] files) {
+        JSONObject jsonObject = new JSONObject();
+        for (File file : files) {
+            String absolutePath = file.getAbsolutePath().replace(String.format("%s/runline", RunLineServer.WORKSPACE), "");
+            String fileName = file.getName();
+            if (fileName.startsWith(".")) {
+                continue;// .git
+            }
+            if (file.isDirectory()) {
+                JSONObject subJsonObject = readFiles(file.listFiles());
+                jsonObject.put(fileName, subJsonObject);
+            } else {
+                jsonObject.put(fileName, absolutePath);
+            }
+        }
+        return jsonObject;
+    }
+
+    //  http://localhost:9966/project/run-line/run-line-server/src/main/java/com/denghb/runline/server/handler/GitHandler.java
+    public JSONObject projectFile(String path) {
 
         String filePath = path.replace("/project", String.format("%s/runline", RunLineServer.WORKSPACE));
         String projectName = path.split("/")[2];
@@ -49,6 +123,7 @@ public class ProjectFileHttpHandler {
         return jsonObject;
     }
 
+    // 和master分支比较
     private JSONArray gitDiff(Git git, String branch, String sourceFile) throws Exception {
         Repository repository = git.getRepository();
 
@@ -102,6 +177,7 @@ public class ProjectFileHttpHandler {
         return jsonArray;
     }
 
+    //  运行过的行数
     private JSONArray runline(String filePath) {
         Set<String> lines = new HashSet<>();
         try (FileReader fileReader = new FileReader(filePath);
@@ -119,6 +195,7 @@ public class ProjectFileHttpHandler {
         return new JSONArray(lines);
     }
 
+    // 文件内容
     private JSONArray readContent(String filePath) {
         JSONArray jsonArray = new JSONArray();
         try (FileReader fileReader = new FileReader(filePath);

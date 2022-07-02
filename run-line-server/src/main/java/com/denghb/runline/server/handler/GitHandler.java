@@ -17,17 +17,17 @@ public class GitHandler {
             String projectPath = String.format("%s/runline/%s", RunLineServer.WORKSPACE, projectName);
 
             switch (command) {
-                case "clone":
+                case "clone":// http://localhost:9966/git/clone/git@github.com:deng-hb/run-line.git
                     gitClone(path);
                     break;
-                case "checkout":
+                case "checkout":// http://localhost:9966/git/checkout/run-line/dev
                     String branchName = split[4];
                     gitCheckout(projectPath, branchName);
                     break;
-                case "fetch":
+                case "fetch":// http://localhost:9966/git/fetch/run-line
                     Git.open(new File(projectPath)).fetch().call();
                     break;
-                case "pull":
+                case "pull":// http://localhost:9966/git/pull/run-line
                     Git.open(new File(projectPath)).pull().call();
                     break;
 
@@ -40,7 +40,7 @@ public class GitHandler {
         return "ok";
     }
 
-    // http://localhost:9966/git/checkout/run-line/dev
+
     private void gitCheckout(String projectPath, String branchName) throws Exception {
 
         Git.open(new File(projectPath))
@@ -53,7 +53,7 @@ public class GitHandler {
                 .call();
     }
 
-    // http://localhost:9966/git/clone/git@github.com:deng-hb/run-line.git
+
     private void gitClone(String path) throws Exception {
         String url = path.substring("/git/clone/".length());
         Object projectName = url.substring(url.lastIndexOf("/") + 1, url.lastIndexOf("."));
