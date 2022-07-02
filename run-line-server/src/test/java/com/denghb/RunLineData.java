@@ -1,4 +1,4 @@
-package com.denghb.runline.server;
+package com.denghb;
 
 import java.io.BufferedReader;
 import java.io.File;

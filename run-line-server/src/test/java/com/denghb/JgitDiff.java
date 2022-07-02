@@ -1,5 +1,6 @@
-package com.denghb.runline.server;
+package com.denghb;
 
+import com.denghb.runline.server.Consts;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;

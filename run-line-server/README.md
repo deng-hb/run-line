@@ -49,6 +49,12 @@ ok
 ok
 ```
 
+#### /git/fetch/${project}
+拉取
+```
+ok
+```
+
 
 ### git clone 
 org.eclipse.jgit.api.errors.TransportException: git@xxx Auth fail -> [Help 1]
