@@ -130,7 +130,7 @@ public class ProjectHttpHandler extends BaseHttpHandler {
             String sourceFile = path.substring(path.indexOf(Consts.SOURCE_FOLDER) + Consts.SOURCE_FOLDER.length());
 
             String runlinePath = String.format("runline/%s/%s/%s", projectName, branch, sourceFile.replace(".java", ""));
-            List<String> clients = RegistryHub.get(projectName, branch);
+            List<String> clients = RegistryHub.getOnline(projectName, branch);
 
             jsonObject.put("content", readContent(filePath));
             jsonObject.put("runline", runline(clients, runlinePath));
