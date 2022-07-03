@@ -40,9 +40,12 @@ public class BaseHttpHandler implements HttpHandler {
     }
 
     protected String getPath(HttpExchange httpExchange) {
-        String remoteHost = getRemoteHost(httpExchange);
-
         String path = httpExchange.getRequestURI().getPath();
+        String remoteHost = getRemoteHost(httpExchange);
+        if (path.contains("/..")) {
+            System.err.printf("%s:%s\n", remoteHost, path);
+            throw new IllegalArgumentException("Illegal Argument");
+        }
         System.out.printf("%s:%s\n", remoteHost, path);
         return path;
     }

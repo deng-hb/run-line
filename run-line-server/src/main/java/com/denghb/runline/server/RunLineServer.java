@@ -21,7 +21,7 @@ public class RunLineServer {
         if (args.length != 1 || args[0].endsWith("/")) {
             throw new IllegalArgumentException("java -jar run-line-server.jar ${workspace}");
         }
-        WORKSPACE = String.format("%s", args[0]);
+        WORKSPACE = String.format("%s/runline", args[0]);
 
         HttpServer server = HttpServer.create(new InetSocketAddress(9966), 0);
         server.setExecutor(Executors.newCachedThreadPool());

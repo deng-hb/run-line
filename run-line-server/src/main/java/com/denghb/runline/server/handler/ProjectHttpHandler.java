@@ -32,7 +32,7 @@ public class ProjectHttpHandler extends BaseHttpHandler {
 
 
     @Override
-    public void handle(HttpExchange httpExchange) throws IOException {
+    public void handle(HttpExchange httpExchange) {
         String path = getPath(httpExchange);
         Object res = handle(path);
         outJson(httpExchange, res);
@@ -53,9 +53,12 @@ public class ProjectHttpHandler extends BaseHttpHandler {
     // 已经clone下来的项目
     public JSONArray projects() {
         JSONArray jsonArray = new JSONArray();
-        File file = new File(String.format("%s/runline", RunLineServer.WORKSPACE));
+        File file = new File(RunLineServer.WORKSPACE);
         if (file.exists() && file.isDirectory()) {
             File[] files = file.listFiles();
+            if (null == files) {
+                return jsonArray;
+            }
             for (File f : files) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("name", f.getName());
@@ -82,7 +85,7 @@ public class ProjectHttpHandler extends BaseHttpHandler {
     // 项目目录
     public JSONObject projectPath(String path) {
         JSONObject jsonObject = new JSONObject();
-        String projectPath = path.replace("/project", String.format("%s/runline", RunLineServer.WORKSPACE));
+        String projectPath = path.replace("/project", RunLineServer.WORKSPACE);
         String projectName = projectPath.substring(projectPath.lastIndexOf("/") + 1);
 
         File file = new File(projectPath);
@@ -94,8 +97,11 @@ public class ProjectHttpHandler extends BaseHttpHandler {
     // 文件目录
     private JSONObject readFiles(File[] files) {
         JSONObject jsonObject = new JSONObject();
+        if (null == files) {
+            return jsonObject;
+        }
         for (File file : files) {
-            String absolutePath = file.getAbsolutePath().replace(String.format("%s/runline", RunLineServer.WORKSPACE), "");
+            String absolutePath = file.getAbsolutePath().replace(RunLineServer.WORKSPACE, "");
             String fileName = file.getName();
             if (fileName.startsWith(".")) {
                 continue;// .git
@@ -113,9 +119,9 @@ public class ProjectHttpHandler extends BaseHttpHandler {
     //  http://localhost:9966/project/run-line/run-line-server/src/main/java/com/denghb/runline/server/handler/GitHandler.java
     public JSONObject projectFile(String path) {
 
-        String filePath = path.replace("/project", String.format("%s/runline", RunLineServer.WORKSPACE));
+        String filePath = path.replace("/project", RunLineServer.WORKSPACE);
         String projectName = path.split("/")[2];
-        String projectPath = String.format("%s/runline/%s", RunLineServer.WORKSPACE, projectName);
+        String projectPath = String.format("%s/%s", RunLineServer.WORKSPACE, projectName);
 
         JSONObject jsonObject = new JSONObject();
         try {
@@ -200,7 +206,7 @@ public class ProjectHttpHandler extends BaseHttpHandler {
 
                     ByteArrayOutputStream output = new ByteArrayOutputStream();
                     byte[] buffer = new byte[1024];
-                    int len = -1;
+                    int len;
                     while ((len = in.read(buffer)) != -1) {
                         output.write(buffer, 0, len);
                     }
