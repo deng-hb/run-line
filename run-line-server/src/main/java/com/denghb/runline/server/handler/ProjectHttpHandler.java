@@ -1,9 +1,9 @@
 package com.denghb.runline.server.handler;
 
 import com.denghb.runline.server.Consts;
+import com.denghb.runline.server.RegistryHub;
 import com.denghb.runline.server.RunLineServer;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -20,10 +20,10 @@ import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.LineNumberReader;
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -122,10 +122,12 @@ public class ProjectHttpHandler extends BaseHttpHandler {
             Git git = Git.open(new File(projectPath));
             String branch = git.getRepository().getBranch();
             String sourceFile = path.substring(path.indexOf(Consts.SOURCE_FOLDER) + Consts.SOURCE_FOLDER.length());
-            String runlinePath = String.format("%s/.runline/%s/%s/%s", RunLineServer.WORKSPACE, projectName, branch, sourceFile.replace(".java", ""));
+
+            String runlinePath = String.format("runline/%s/%s/%s", projectName, branch, sourceFile.replace(".java", ""));
+            List<String> clients = RegistryHub.get(projectName, branch);
 
             jsonObject.put("content", readContent(filePath));
-            jsonObject.put("runline", runline(runlinePath));
+            jsonObject.put("runline", runline(clients, runlinePath));
             jsonObject.put("diff", gitDiff(git, branch, sourceFile));
         } catch (Exception e) {
             e.printStackTrace();
@@ -188,19 +190,29 @@ public class ProjectHttpHandler extends BaseHttpHandler {
     }
 
     //  运行过的行数
-    private JSONArray runline(String filePath) {
+    private JSONArray runline(List<String> clients, String filePath) {
         Set<String> lines = new HashSet<>();
-        try (FileReader fileReader = new FileReader(filePath);
-             LineNumberReader reader = new LineNumberReader(fileReader)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // 2022-07-02 00:28:41.602#lambda$main$0:20
-                String lineNumber = line.substring(line.lastIndexOf(":") + 1);
-                lines.add(lineNumber);
-            }
+        for (String client : clients) {
+            try {
+                String url = String.format("http://%s/%s", client, filePath);
+                URLConnection connection = new URL(url).openConnection();
+                try (InputStream in = connection.getInputStream()) {
 
-        } catch (Exception e) {
-            e.printStackTrace();
+                    ByteArrayOutputStream output = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[1024];
+                    int len = -1;
+                    while ((len = in.read(buffer)) != -1) {
+                        output.write(buffer, 0, len);
+                    }
+                    String res = output.toString();
+                    if (null != res && res.length() > 0) {
+                        lines.addAll(Arrays.asList(res.split(",")));
+                    }
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         return new JSONArray(lines);
     }

@@ -2,7 +2,6 @@ package com.denghb.runline.server.handler;
 
 import com.denghb.runline.server.RunLineServer;
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 

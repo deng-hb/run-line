@@ -40,10 +40,16 @@ public class BaseHttpHandler implements HttpHandler {
     }
 
     protected String getPath(HttpExchange httpExchange) {
+        String remoteHost = getRemoteHost(httpExchange);
 
         String path = httpExchange.getRequestURI().getPath();
-        System.out.printf("http:%s\n", path);
+        System.out.printf("%s:%s\n", remoteHost, path);
         return path;
+    }
+
+    protected String getRemoteHost(HttpExchange httpExchange) {
+        String host = httpExchange.getRemoteAddress().getAddress().getHostAddress();
+        return host;
     }
 
     protected void outJson(HttpExchange httpExchange, Object res) {

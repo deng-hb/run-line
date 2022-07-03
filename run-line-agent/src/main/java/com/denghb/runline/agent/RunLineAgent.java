@@ -28,7 +28,7 @@ public class RunLineAgent {
         }
         String[] split = agentArgs.split(";");
 
-        workspace = split[0];
+        workspace = String.format("%s/.runline", split[0]);
         project = split[1];
         branch = split[2];
 
@@ -48,8 +48,8 @@ public class RunLineAgent {
             @Override
             public void run() {
                 try {
-                    URLConnection urlConnection = new URL(url).openConnection();
-                    InputStream inputStream = urlConnection.getInputStream();
+                    URLConnection connection = new URL(url).openConnection();
+                    InputStream inputStream = connection.getInputStream();
                     inputStream.close();
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -78,15 +78,13 @@ public class RunLineAgent {
      * @param data
      */
     public static void stat(String data) {
-        System.out.println(data);
-
+        String filePath = String.format("%s/%s/%s/%s", workspace, project, branch, data);
         try {
-
             // 创建文件夹
-            String filePath = String.format("%s/.runline/%s/%s/%s", workspace, project, branch, data);
             File file = new File(filePath);
-            if (!file.getParentFile().exists()) {
-                file.getParentFile().mkdirs();
+            File parentFile = file.getParentFile();
+            if (!parentFile.exists()) {
+                parentFile.mkdirs();
             }
 
             // 创建文件
@@ -94,6 +92,8 @@ public class RunLineAgent {
                 file.createNewFile();
             }
         } catch (Exception e) {
+            System.err.println(data);
+            System.err.println(filePath);
             e.printStackTrace();
         }
     }
