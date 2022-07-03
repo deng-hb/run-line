@@ -1,6 +1,5 @@
 package com.denghb;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.LineNumberReader;
@@ -47,6 +46,9 @@ public class RunLineData {
     }
 
     public static void reads(File[] files) {
+        if (null == files) {
+            return;
+        }
         for (File file : files) {
             read(file);
         }
