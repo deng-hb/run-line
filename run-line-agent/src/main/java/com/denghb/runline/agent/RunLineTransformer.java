@@ -47,6 +47,7 @@ public class RunLineTransformer implements ClassFileTransformer {
             classReader.accept(classVisitor, ClassReader.SKIP_FRAMES);
             return classWriter.toByteArray();
         } catch (Exception e) {
+            System.err.println(className);
             e.printStackTrace();
         }
         return null;

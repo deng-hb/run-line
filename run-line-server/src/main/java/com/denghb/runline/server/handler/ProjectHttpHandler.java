@@ -5,7 +5,6 @@ import com.denghb.runline.server.RegistryHub;
 import com.denghb.runline.server.RunLineServer;
 import com.sun.net.httpserver.HttpExchange;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.Edit;
@@ -42,9 +41,7 @@ public class ProjectHttpHandler extends BaseHttpHandler {
         Object res = "";
         if (path.startsWith("/projects")) {
             res = projects();// http://localhost:9966/projects
-        } else if (path.startsWith("/project/") && path.endsWith(".java")) {
-            res = projectFile(path);
-        } else if (path.startsWith("/project/")) {
+        } else {
             res = projectPath(path);// http://localhost:9966/project/run-line
         }
         return res;
@@ -76,7 +73,7 @@ public class ProjectHttpHandler extends BaseHttpHandler {
             Git git = Git.open(file);
             List<RemoteConfig> call = git.remoteList().call();
             return call.get(0).getURIs().get(0).toString();
-        } catch (IOException | GitAPIException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
@@ -85,12 +82,33 @@ public class ProjectHttpHandler extends BaseHttpHandler {
     // 项目目录
     public JSONObject projectPath(String path) {
         JSONObject jsonObject = new JSONObject();
-        String projectPath = path.replace("/project", RunLineServer.WORKSPACE);
-        String projectName = projectPath.substring(projectPath.lastIndexOf("/") + 1);
+        String filePath = path.replace("/project", RunLineServer.WORKSPACE);
 
-        File file = new File(projectPath);
-        JSONObject subJsonObject = readFiles(file.listFiles());
-        jsonObject.put(projectName, subJsonObject);
+        File file = new File(filePath);
+        if (file.isDirectory()) {
+            String projectName = filePath.substring(filePath.lastIndexOf("/") + 1);
+            JSONObject subJsonObject = readFiles(file.listFiles());
+            jsonObject.put(projectName, subJsonObject);
+        } else {
+            jsonObject.put("content", readContent(filePath));
+            if (filePath.endsWith(".java")) {
+                try {
+                    String projectName = path.split("/")[2];
+                    String projectPath = String.format("%s/%s", RunLineServer.WORKSPACE, projectName);
+
+                    Git git = Git.open(new File(projectPath));
+                    String branch = git.getRepository().getBranch();
+                    String sourceFile = path.substring(path.indexOf(Consts.SOURCE_FOLDER) + Consts.SOURCE_FOLDER.length());
+                    jsonObject.put("diff", gitDiff(git, branch, sourceFile));
+
+                    String runlinePath = String.format("runline/%s/%s/%s", projectName, branch, sourceFile.replace(".java", ""));
+                    List<String> clients = RegistryHub.getOnline(projectName, branch);
+                    jsonObject.put("runline", runline(clients, runlinePath));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
         return jsonObject;
     }
 
@@ -112,31 +130,6 @@ public class ProjectHttpHandler extends BaseHttpHandler {
             } else {
                 jsonObject.put(fileName, absolutePath);
             }
-        }
-        return jsonObject;
-    }
-
-    //  http://localhost:9966/project/run-line/run-line-server/src/main/java/com/denghb/runline/server/handler/GitHandler.java
-    public JSONObject projectFile(String path) {
-
-        String filePath = path.replace("/project", RunLineServer.WORKSPACE);
-        String projectName = path.split("/")[2];
-        String projectPath = String.format("%s/%s", RunLineServer.WORKSPACE, projectName);
-
-        JSONObject jsonObject = new JSONObject();
-        try {
-            Git git = Git.open(new File(projectPath));
-            String branch = git.getRepository().getBranch();
-            String sourceFile = path.substring(path.indexOf(Consts.SOURCE_FOLDER) + Consts.SOURCE_FOLDER.length());
-
-            String runlinePath = String.format("runline/%s/%s/%s", projectName, branch, sourceFile.replace(".java", ""));
-            List<String> clients = RegistryHub.getOnline(projectName, branch);
-
-            jsonObject.put("content", readContent(filePath));
-            jsonObject.put("runline", runline(clients, runlinePath));
-            jsonObject.put("diff", gitDiff(git, branch, sourceFile));
-        } catch (Exception e) {
-            e.printStackTrace();
         }
         return jsonObject;
     }
