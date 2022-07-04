@@ -68,6 +68,7 @@ HashKnownHosts no
 StrictHostKeyChecking no
 ```
 
+ERROR: You're using an RSA key with SHA-1
 org.eclipse.jgit.api.errors.TransportException:invalid privatekey:
 ```
 ssh-keygen -t ecdsa -b 256 -m PEM

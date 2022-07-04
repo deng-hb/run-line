@@ -11,6 +11,7 @@ import org.eclipse.jgit.diff.Edit;
 import org.eclipse.jgit.diff.EditList;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.patch.FileHeader;
 import org.eclipse.jgit.transport.RemoteConfig;
@@ -26,6 +27,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ProjectHttpHandler extends BaseHttpHandler {
 
@@ -50,17 +52,16 @@ public class ProjectHttpHandler extends BaseHttpHandler {
     // 已经clone下来的项目
     public JSONArray projects() {
         JSONArray jsonArray = new JSONArray();
-        File file = new File(RunLineServer.WORKSPACE);
-        if (file.exists() && file.isDirectory()) {
-            File[] files = file.listFiles();
+        File projects = new File(RunLineServer.WORKSPACE);
+        if (projects.exists() && projects.isDirectory()) {
+            File[] files = projects.listFiles();
             if (null == files) {
                 return jsonArray;
             }
-            for (File f : files) {
+            for (File file : files) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("name", f.getName());
-
-                jsonObject.put("git", getRemoteUrl(f));
+                jsonObject.put("name", file.getName());
+                jsonObject.put("git", gitInfo(file));
                 jsonArray.put(jsonObject);
             }
         }
@@ -68,15 +69,21 @@ public class ProjectHttpHandler extends BaseHttpHandler {
         return jsonArray;
     }
 
-    private String getRemoteUrl(File file) {
+    private JSONObject gitInfo(File file) {
+        JSONObject jsonObject = new JSONObject();
         try {
             Git git = Git.open(file);
-            List<RemoteConfig> call = git.remoteList().call();
-            return call.get(0).getURIs().get(0).toString();
+            jsonObject.put("branch", git.getRepository().getBranch());
+
+            List<String> branchList = git.branchList().call().stream().map(Ref::getName).collect(Collectors.toList());
+            jsonObject.put("branchList", branchList);
+
+            List<RemoteConfig> remotes = git.remoteList().call();// 默认算1个吧
+            jsonObject.put("remote", remotes.get(0).getURIs().get(0).toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return jsonObject;
     }
 
     // 项目目录
