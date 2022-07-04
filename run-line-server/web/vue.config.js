@@ -10,6 +10,8 @@ module.exports = defineConfig({
     config.plugin('monaco').use(new MonacoWebpackPlugin())
   },
 
+  productionSourceMap: false,
+
   devServer: {
     proxy: {
       '/project': {
