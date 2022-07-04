@@ -1,24 +1,44 @@
 <template>
+  <div class="layout">
+    <div class="layout-header">
+    </div>
+    <div class="layout-content">
+      <div class="layout-content-left">
+        <router-link to="/"><h1 style="text-align: center;">RunLine</h1></router-link>
+        <a-dropdown :trigger="['contextmenu']">
+          <a-directory-tree
+            :blockNode="true"
 
-<a-layout style="min-height: 100vh">
-    <a-layout-sider v-model:collapsed="collapsed" collapsible>
-      <div class="logo" />
+            :tree-data="treeData"
+            @select="onTreeSelect"
+          ></a-directory-tree>
+          <template #overlay>
+            <a-menu>
+              <a-menu-item key="1">pull</a-menu-item>
+              <a-menu-item key="2">checkout</a-menu-item>
+              <a-menu-item key="3">fetch</a-menu-item>
+            </a-menu>
+          </template>
+          </a-dropdown>
+      </div>
 
-      <a-directory-tree
-          :tree-data="treeData"
-          @select="onSelect"
-        ></a-directory-tree>
-    </a-layout-sider>
-    <a-layout>
-      <a-layout-header style="background: #fff; padding: 0" />
-      <a-layout-content>
-          <div id="container" ref="container"></div>
-      </a-layout-content>
-      <a-layout-footer style="text-align: center">
-        Ant Design ©2018 Created by Ant UED
-      </a-layout-footer>
-    </a-layout>
-  </a-layout>
+      <div class="layout-content-right">
+        <div class="resizable"></div>
+        <div class="resize-line"></div>
+        <div class="layout-content-right-content">
+          <a-tabs v-model:activeKey="tabActiveKey" hide-add type="editable-card" @tabClick="onTabClick" @edit="onTabEdit">
+            <a-tab-pane v-for="tab in tabs" :key="tab.key" :tab="tab.title" :closable="tab.closable">
+              <template v-if="1 == tab.key">
+                hhh
+              </template>
+            </a-tab-pane>
+          </a-tabs>
+          <div v-show="1 != tabActiveKey" id="editor"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </template>
 
 <script>
@@ -30,31 +50,16 @@ export default {
   name: 'Workspace',
   data () {
     return {
-      themeOption: [
-        {
-          value: 'vs',
-          label: '默认'
-        },
-        {
-          value: 'hc-black',
-          label: '高亮'
-        },
-        {
-          value: 'vs-dark',
-          label: '深色'
-        }
-      ],
-      languageOption: [],
-      theme: 'vs',
-      language: 'java',
-      treeData: []
+      themeOption: ['vs','vs-dark','hc-black'],
+      treeData: [],
+      tabActiveKey: '1',
+      tabs: [{title:'Home', key: '1', closable: false}]
     }
   },
   mounted () {
     console.log(this.$route)
-    const self = this
-    self.initEditor()
-    self.languageOption = monaco.languages.getLanguages()
+    this.initEditor();
+
     http.get(`/project/${this.$route.params.project}`, {}).then(res=>{
       console.log(res)
       let i = 0;
@@ -85,64 +90,142 @@ export default {
     })
   },
   methods: {
-    initEditor () {
-      const self = this
-      const domEditor = document.getElementById('container')
-      self.monacoEditor = monaco.editor.create(domEditor, {
+    initEditor() {
+      this.editor = monaco.editor.create(document.getElementById('editor'), {
         value: [
           'function x() {',
           '\tconsole.log("Hello world!");',
           '}'
         ].join('\n'),
-
-        theme: self.theme,
+        theme: 'vs',
         readOnly: false,
         automaticLayout: true
       })
+
+      console.log(this.editor);
+      // monaco.editor.setTheme('vs-dark')
     },
-    themeChange (val) {
-      monaco.editor.setTheme(val)
+    onTabEdit(e) {
+      // close
+      console.log(e)
+      this.tabs = this.tabs.filter(t => t.key !== e);
     },
-    languageChange (val) {
-      monaco.editor.setModelLanguage(this.monacoEditor.getModel(), val)
+    onTabClick(e) {
+      console.log(e)
+      this.loadFile(e);
     },
-    onSelect(e) {
+    onTreeSelect(e) {
       console.log(e)
       let file = e[0];
-      if (typeof file == 'string') {
-        http.get(`/project${file}`).then(res=>{
-          this.monacoEditor.setValue(res.content.join('\n'))
-          monaco.editor.setModelLanguage(this.monacoEditor.getModel(), 'java')
-
-          let runline = res.runline;
-
-          let data = [];
-          for (let i in runline) {
-            let line = Number(runline[i])
-            data.push({
-              range: new monaco.Range(line, 1, line, 1),
-              options: {
-                isWholeLine: true,
-                className: 'insert'
-              }
-            })
-          }
-
-          this.monacoEditor.deltaDecorations([], data);
-        })
+      if (typeof file === 'string') {
+        this.loadFile(file);
       }
+    
+    },
+    loadFile(file) {
+
+      let fileName = file.substring(file.lastIndexOf('/') + 1);
+      let fileExt = file.substring(file.lastIndexOf('.') + 1);
+      if ('js' == fileExt) {
+        fileExt = 'javascript';
+      } else if ('md' == fileExt) {
+        fileExt = 'markdown';
+      } else if ('vue' == fileExt) {
+        fileExt = 'html';
+      }
+
+      if (this.tabs.filter(t => t.key === file).length == 0) {
+        this.tabs.push({title: fileName, key: file});
+      }
+      this.tabActiveKey = file;
+      http.get(`/project${file}`).then(res=>{
+        console.log(res);
+        monaco.editor.setModelLanguage(this.editor.getModel(), fileExt)
+        this.editor.setValue(res.content.join('\n'));
+        let runline = res.runline;
+
+        let data = [];
+        for (let i in runline) {
+          let line = Number(runline[i])
+          data.push({
+            range: new monaco.Range(line, 1, line, 1),
+            options: {
+              isWholeLine: true,
+              className: 'insert'
+            }
+          })
+        }
+
+        this.editor.deltaDecorations([], data);
+      })
     }
   }
 }
 </script>
 
 <style>
-  #container{
-    width: calc(100vw - 200px);
-    height: calc(100vh - 164px);
+  #editor {
+    width: 100%;
+    height: calc(100vh - 40px);
     text-align: left;
   }
   .insert {
     background: lightblue;
+  }
+  .layout {
+    box-sizing: border-box;
+  }
+  .layout-header {
+    height: 0px;
+  }
+  .layout-content {
+    display: flex;
+    width: 100%;
+    height: calc(100vh - 0px);
+    overflow: hidden;
+  }
+  .layout-content-left {
+    flex: 1;
+    height: calc(100vh - 0px);
+    overflow: auto;
+  }
+  .layout-content-right {
+    position: relative;
+    transform: rotateY(180deg);
+  }
+  .layout-content-right-content { 
+    transform: rotateY(180deg);
+    margin: 0;
+    height: calc(100vh - 0px);
+    position: absolute;
+    top: 0;
+    right: 5px;
+    bottom: 0;
+    left: 0;
+  }
+  .resizable {
+    resize: horizontal;
+    cursor: ew-resize;
+    width: calc(100vw - 200px);
+    height: calc(100vh - 110px);
+    overflow: scroll;
+    border: 1px solid black;
+    opacity: 0;
+  }
+  .resizable::-webkit-scrollbar {
+    width: calc(100vh - 100px);
+    height: inherit;
+  }
+  .resize-line {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-left: 1px solid #bbb;
+    pointer-events: none;
+  }
+  .resizable:hover ~ .resize-line,
+  .resizable:active ~ .resize-line {
+    border-left: 1px dashed skyblue;
   }
 </style>
