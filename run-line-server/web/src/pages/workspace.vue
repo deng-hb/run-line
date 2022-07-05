@@ -28,12 +28,12 @@
         <div class="layout-content-right-content">
           <a-tabs v-model:activeKey="tabActiveKey" hide-add type="editable-card" @tabClick="onTabClick" @edit="onTabEdit">
             <a-tab-pane v-for="tab in tabs" :key="tab.key" :tab="tab.title" :closable="tab.closable">
-              <template v-if="1 == tab.key">
-                hhh
-              </template>
+              <div v-show="1 == tabActiveKey">
+              Hello World!
+              </div>
+              <div v-show="1 != tabActiveKey" :id="'editor-' + tab.key" class="editor"></div>
             </a-tab-pane>
           </a-tabs>
-          <div v-show="1 != tabActiveKey" id="editor"></div>
         </div>
       </div>
     </div>
@@ -44,6 +44,7 @@
 <script>
 
 import * as monaco from 'monaco-editor'
+import md5 from 'crypto-js/md5'
 import http from '../http.js'
 
 export default {
@@ -58,8 +59,6 @@ export default {
   },
   mounted () {
     console.log(this.$route)
-    this.initEditor();
-
     http.get(`/project/${this.$route.params.project}`, {}).then(res=>{
       console.log(res)
       let i = 0;
@@ -90,29 +89,15 @@ export default {
     })
   },
   methods: {
-    initEditor() {
-      this.editor = monaco.editor.create(document.getElementById('editor'), {
-        value: [
-          'function x() {',
-          '\tconsole.log("Hello world!");',
-          '}'
-        ].join('\n'),
-        theme: 'vs',
-        readOnly: false,
-        automaticLayout: true
-      })
-
-      console.log(this.editor);
-      // monaco.editor.setTheme('vs-dark')
-    },
     onTabEdit(e) {
       // close
       console.log(e)
       this.tabs = this.tabs.filter(t => t.key !== e);
+      this.tabActiveKey = this.tabs[this.tabs.length - 1].key;
+      this.editor[e] = null;
     },
     onTabClick(e) {
       console.log(e)
-      this.loadFile(e);
     },
     onTreeSelect(e) {
       console.log(e)
@@ -126,47 +111,65 @@ export default {
 
       let fileName = file.substring(file.lastIndexOf('/') + 1);
       let fileExt = file.substring(file.lastIndexOf('.') + 1);
-      if ('js' == fileExt) {
-        fileExt = 'javascript';
-      } else if ('md' == fileExt) {
-        fileExt = 'markdown';
-      } else if ('vue' == fileExt) {
-        fileExt = 'html';
+      let language = fileExt;
+      if ('js' == language) {
+        language = 'javascript';
+      } else if ('md' == language) {
+        language = 'markdown';
+      } else if ('vue' == language) {
+        language = 'html';
       }
 
-      if (this.tabs.filter(t => t.key === file).length == 0) {
-        this.tabs.push({title: fileName, key: file});
+      let key = md5(file).toString();
+      this.tabActiveKey = key;
+      if (this.tabs.filter(t => t.key === key).length == 0) {
+        this.tabs.push({title: fileName, key: key});
+        
       }
-      this.tabActiveKey = file;
       http.get(`/project${file}`).then(res=>{
         console.log(res);
-        monaco.editor.setModelLanguage(this.editor.getModel(), fileExt)
-        this.editor.setValue(res.content.join('\n'));
-        let runline = res.runline;
-
-        let data = [];
-        for (let i in runline) {
-          let line = Number(runline[i])
-          data.push({
-            range: new monaco.Range(line, 1, line, 1),
-            options: {
-              isWholeLine: true,
-              className: 'insert'
-            }
-          })
-        }
-
-        this.editor.deltaDecorations([], data);
+        this.openEditor(language, key, res);
       })
+    },
+    openEditor(language, key, res) {
+      if (!this.editor) {
+        this.editor = {};
+      }
+      if (null != this.editor[key]) {
+        return;
+      }
+      this.editor[key] = monaco.editor.create(document.getElementById(`editor-${key}`), {
+        value: res.content.join('\n'),
+        theme: 'vs',
+        readOnly: false,
+        language: language,
+        automaticLayout: true,
+        scrollBeyondLastLine: false,
+      })
+      let runline = res.runline;
+
+      let data = [];
+      for (let i in runline) {
+        let line = Number(runline[i])
+        data.push({
+          range: new monaco.Range(line, 1, line, 1),
+          options: {
+            isWholeLine: true,
+            className: 'insert'
+          }
+        })
+      }
+
+      this.editor[key].deltaDecorations([], data);
     }
   }
 }
 </script>
 
 <style>
-  #editor {
+  .editor {
     width: 100%;
-    height: calc(100vh - 40px);
+    height: calc(100vh - 60px);
     text-align: left;
   }
   .insert {
