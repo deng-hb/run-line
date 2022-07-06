@@ -61,7 +61,11 @@ public class ProjectHttpHandler extends BaseHttpHandler {
             for (File file : files) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("name", file.getName());
-                jsonObject.put("git", gitInfo(file));
+                JSONObject gitInfo = gitInfo(file);
+                jsonObject.put("git", gitInfo);
+
+                String branch = gitInfo.has("branch") ? gitInfo.getString("branch") : "";
+                jsonObject.put("agents", RegistryHub.getOnline(file.getName(), branch));
                 jsonArray.put(jsonObject);
             }
         }
