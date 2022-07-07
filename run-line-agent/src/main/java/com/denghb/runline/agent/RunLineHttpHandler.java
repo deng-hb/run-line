@@ -7,6 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
 
 public class RunLineHttpHandler implements HttpHandler {
 
@@ -49,7 +52,20 @@ public class RunLineHttpHandler implements HttpHandler {
                     lines.append(",");
                 }
                 lines.append(file.getName());
+                lines.append(":");
+                lines.append(createTime(file));
             }
         }
+    }
+
+    private static long createTime(File file) {
+        try {
+            Path path = file.toPath();
+            BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
+            return attr.creationTime().toMillis();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }

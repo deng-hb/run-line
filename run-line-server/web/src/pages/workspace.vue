@@ -150,7 +150,7 @@ export default {
 
       let data = [];
       for (let i in runline) {
-        let line = Number(runline[i])
+        let line = Number(runline[i].split(':')[0])
         data.push({
           range: new monaco.Range(line, 1, line, 1),
           options: {
@@ -166,7 +166,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
   .editor {
     width: 100%;
     height: calc(100vh - 60px);

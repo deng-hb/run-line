@@ -13,6 +13,10 @@
               <a-avatar src="https://joeschmoe.io/api/v1/random" />
             </template>
           </a-list-item-meta>
+          <template #actions>
+            <a key="list-loadmore-edit">edit</a>
+            <a key="list-loadmore-more">more</a>
+          </template>
         </a-list-item>
       </template>
     </a-list>
@@ -41,13 +45,10 @@ export default {
 }
 </script>
 
-<style>
-  #container{
-    width: calc(100vw - 200px);
-    height: calc(100vh - 164px);
-    text-align: left;
-  }
-  .insert {
-    background: lightblue;
+<style scoped>
+  .layout{
+    width: 1200px;
+    height: 100%;
+    margin: 0 auto;
   }
 </style>

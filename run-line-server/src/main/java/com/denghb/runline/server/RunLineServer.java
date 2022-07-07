@@ -18,12 +18,16 @@ public class RunLineServer {
 
     public static void main(String[] args) throws IOException {
         System.out.println("args:" + Arrays.toString(args));
-        if (args.length != 1 || args[0].endsWith("/")) {
-            throw new IllegalArgumentException("java -jar run-line-server.jar ${workspace}");
+        if (args.length < 1 || args[0].endsWith("/")) {
+            throw new IllegalArgumentException("java -jar run-line-server.jar ${workspace} ${port}");
+        }
+        int port = 9966;
+        if (args.length == 2) {
+            port = Integer.parseInt(args[1]);
         }
         WORKSPACE = String.format("%s/runline", args[0]);
 
-        HttpServer server = HttpServer.create(new InetSocketAddress(9966), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.setExecutor(Executors.newCachedThreadPool());
         server.createContext("/", new BaseHttpHandler());
         server.createContext("/git", new GitOperateHttpHandler());

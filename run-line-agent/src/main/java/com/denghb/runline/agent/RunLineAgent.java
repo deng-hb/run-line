@@ -34,13 +34,15 @@ public class RunLineAgent {
 
         String packages = split[3];
         String server = split[4];
-
+        if (!server.contains(":")) {
+            server = String.format("%s:9966", server);
+        }
 
         inst.addTransformer(new RunLineTransformer(packages), true);
 
         int port = 17950 + new Random().nextInt(99);
-        String url = String.format("http://%s:9966/registry/%s/%s/%s/%d", server, project, branch, packages, port);
-        System.out.println(url);
+        String url = String.format("http://%s/registry/%s/%s/%s/%d", server, project, branch, packages, port);
+        System.out.println("registry server:" + url);
 
         // 10s 定时发送当前项目信息给服务端
         new Timer().schedule(new TimerTask() {
