@@ -1,10 +1,7 @@
 package com.denghb.runline.server;
 
 
-import com.denghb.runline.server.handler.BaseHttpHandler;
-import com.denghb.runline.server.handler.GitOperateHttpHandler;
-import com.denghb.runline.server.handler.ProjectHttpHandler;
-import com.denghb.runline.server.handler.RegistryHttpHandler;
+import com.denghb.runline.server.handler.*;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
@@ -30,9 +27,10 @@ public class RunLineServer {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.setExecutor(Executors.newCachedThreadPool());
         server.createContext("/", new BaseHttpHandler());
-        server.createContext("/git", new GitOperateHttpHandler());
-        server.createContext("/project", new ProjectHttpHandler());
-        server.createContext("/registry", new RegistryHttpHandler());
+        server.createContext("/api/git", new GitOperateHttpHandler());
+        server.createContext("/api/project", new ProjectHttpHandler());
+        server.createContext("/api/registry", new RegistryHttpHandler());
+        server.createContext("/api/runline", new RunLineHttpHandler());
         server.start();
     }
 }

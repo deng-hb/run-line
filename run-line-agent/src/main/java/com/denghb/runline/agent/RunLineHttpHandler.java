@@ -26,7 +26,7 @@ public class RunLineHttpHandler implements HttpHandler {
         try (OutputStream out = httpExchange.getResponseBody()) {
 
             String path = httpExchange.getRequestURI().getPath();
-            String runlinePath = path.replaceFirst("/runline", workspace);
+            String runlinePath = path.replaceFirst("/api/runline", workspace);
 
             StringBuilder lines = new StringBuilder();
             File[] files = new File(runlinePath).listFiles();

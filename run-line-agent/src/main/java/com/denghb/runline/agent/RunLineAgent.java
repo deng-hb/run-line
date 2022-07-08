@@ -41,7 +41,7 @@ public class RunLineAgent {
         inst.addTransformer(new RunLineTransformer(packages), true);
 
         int port = 17950 + new Random().nextInt(99);
-        String url = String.format("http://%s/registry/%s/%s/%s/%d", server, project, branch, packages, port);
+        String url = String.format("http://%s/api/registry/%s/%s/%s/%d", server, project, branch, packages, port);
         System.out.println("registry server:" + url);
 
         // 10s 定时发送当前项目信息给服务端
@@ -63,7 +63,7 @@ public class RunLineAgent {
         try {
             HttpServer httpServer = HttpServer.create(new InetSocketAddress(port), 0);
             httpServer.setExecutor(Executors.newCachedThreadPool());
-            httpServer.createContext("/runline", new RunLineHttpHandler(workspace));
+            httpServer.createContext("/api/runline", new RunLineHttpHandler(workspace));
             httpServer.start();
         } catch (Exception e) {
             e.printStackTrace();

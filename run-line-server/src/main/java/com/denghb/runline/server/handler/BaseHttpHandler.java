@@ -47,7 +47,8 @@ public class BaseHttpHandler implements HttpHandler {
             throw new IllegalArgumentException("Illegal Argument");
         }
         System.out.printf("%s:%s\n", remoteHost, path);
-        return path;
+        // remove "/api"
+        return path.replaceFirst("/api", "");
     }
 
     protected String getRemoteHost(HttpExchange httpExchange) {

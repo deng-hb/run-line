@@ -3,11 +3,11 @@ import QS from 'qs';
 
 // 环境的切换
 if (process.env.NODE_ENV == 'development') {    
-    axios.defaults.baseURL = '';
+    axios.defaults.baseURL = '/api';
 } else if (process.env.NODE_ENV == 'debug') {    
-    axios.defaults.baseURL = '';
+    axios.defaults.baseURL = '/api';
 } else if (process.env.NODE_ENV == 'production') {    
-    axios.defaults.baseURL = '';
+    axios.defaults.baseURL = '/api';
 }
 
 // 请求超时时间

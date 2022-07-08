@@ -4,7 +4,7 @@
     </div>
     <div class="layout-content">
       <div class="layout-content-left">
-        <router-link to="/"><h1 style="text-align: center;">RunLine</h1></router-link>
+        <router-link to="/"><h1 style="text-align: center;">Runline</h1></router-link>
         <a-dropdown :trigger="['contextmenu']">
           <a-directory-tree
             :blockNode="true"

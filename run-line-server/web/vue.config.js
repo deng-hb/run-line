@@ -14,10 +14,7 @@ module.exports = defineConfig({
 
   devServer: {
     proxy: {
-      '/project': {
-        target: 'http://localhost:9966',
-      },
-      '/git': {
+      '/api': {
         target: 'http://localhost:9966',
       }
     }

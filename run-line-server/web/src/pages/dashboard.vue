@@ -1,25 +1,21 @@
 <template>
   <div class="layout">
     <a-row type="flex">
-      <a-col :flex="auto"><h1>RunLine</h1></a-col>
+      <a-col :flex="auto"><h1>Runline</h1></a-col>
       <a-col flex="100px"><a @click="showAdd">Add</a></a-col>
     </a-row>
     <a-list item-layout="horizontal" :data-source="projects">
       <template #renderItem="{ item }">
         <a-list-item>
-          <a-list-item-meta :description="'[' + item.git.branch + '] ' + item.git.remote">
-            <template #title>
-              <a href="https://www.antdv.com/"></a>
-              <router-link :to="'/workspace/' + item.name">{{ item.name }}</router-link>
-            </template>
+          <a-list-item-meta :title="item.name" :description="'[' + item.git.branch + '] ' + item.git.remote">
             <template #avatar>
-              <a-avatar src="https://joeschmoe.io/api/v1/random" />
+              <project-outlined />
             </template>
           </a-list-item-meta>
           <template #actions>
-            <a key="list-loadmore-pull" @click="pull(item.name)">pull</a>
-            <a key="list-loadmore-edit">edit</a>
-            <a key="list-loadmore-more">more</a>
+            <a key="list-loadmore-pull" @click="onPull(item.name)">pull</a>
+            <router-link :to="'/workspace/' + item.name">edit</router-link>
+            <router-link :to="'/runline/' + item.name">runline</router-link>
           </template>
         </a-list-item>
       </template>
@@ -41,11 +37,15 @@
 
 <script>
 import { message } from 'ant-design-vue';
+import { ProjectOutlined } from '@ant-design/icons-vue';
 
 import http from '../http.js'
 
 export default {
   name: 'Dashboard',
+  components: {
+    ProjectOutlined,
+  },
   data () {
     return {
       projects: [],
@@ -63,7 +63,7 @@ export default {
     })
   },
   methods: {
-    pull(name) {
+    onPull(name) {
       message.loading({ content: 'Pulling...', name });
       http.get(`/git/pull/${name}`).then(res=>{
         console.log(res)
@@ -88,7 +88,7 @@ export default {
           this.addModal.visible = false;
         }
       })
-    }
+    },
   }
 }
 </script>
