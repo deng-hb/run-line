@@ -4,10 +4,8 @@ import com.denghb.runline.server.Consts;
 import com.denghb.runline.server.RegistryHub;
 import com.denghb.runline.server.RunLineServer;
 import com.denghb.runline.server.tools.SourceTools;
-import com.sun.net.httpserver.HttpExchange;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.attributes.Attribute;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.diff.DiffFormatter;
 import org.eclipse.jgit.diff.Edit;
@@ -22,7 +20,9 @@ import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
@@ -33,58 +33,38 @@ import java.util.*;
  */
 @Slf4j
 public class RunLineHttpHandler extends BaseHttpHandler {
-    @Override
-    public void handle(HttpExchange httpExchange) throws IOException {
-        String path = getPath(httpExchange);
+
+    public Object handle(String path) throws Exception {
         String filePath = path.replaceFirst("/runline", RunLineServer.WORKSPACE);
         String projectName = path.split("/")[2];
         String projectPath = String.format("%s/%s", RunLineServer.WORKSPACE, projectName);
-        JSONObject jsonObject = new JSONObject();
+
         Git git = Git.open(new File(projectPath));
         String branch = git.getRepository().getBranch();
 
         if (path.endsWith(".java")) {
-            List<String> content = readContent(filePath);
+            JSONObject jsonObject = new JSONObject();
+            List<String> content = SourceTools.readCodes(filePath);
             jsonObject.put("content", content);
             jsonObject.put("methodLine", SourceTools.methodLines(content));
+
             String sourceFile = path.substring(path.indexOf(Consts.SOURCE_FOLDER) + Consts.SOURCE_FOLDER.length());
             try {
                 jsonObject.put("diff", gitDiff(git, branch, sourceFile));
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
-
             String api = String.format("/api/runline/%s/%s/%s", projectName, branch, sourceFile.replace(".java", ""));
             List<String> clients = RegistryHub.getOnline(projectName, branch);
             jsonObject.put("runline", runline(clients, api));
-            outJson(httpExchange, jsonObject);
+
+            return jsonObject;
 
         } else {
-            try {
-                JSONArray jsonArray = gitDiff(git, branch, null);
-                outJson(httpExchange, jsonArray);
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
+            return gitDiff(git, branch, null);
         }
 
 
-    }
-
-    // 文件内容
-    private List<String> readContent(String filePath) {
-        List<String> list = new ArrayList<>();
-        try (FileReader fileReader = new FileReader(filePath);
-             LineNumberReader reader = new LineNumberReader(fileReader)) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                list.add(line);
-            }
-
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-        return list;
     }
 
     // 和master分支比较
@@ -115,8 +95,6 @@ public class RunLineHttpHandler extends BaseHttpHandler {
 
         for (DiffEntry diffEntry : diffs) {
             String newPath = diffEntry.getNewPath();
-            Attribute diffAttribute = diffEntry.getDiffAttribute();
-            System.out.println(diffAttribute);
             // all
             if (null == sourceFile) {
                 if (newPath.contains(Consts.SOURCE_FOLDER) && newPath.endsWith(".java")) {

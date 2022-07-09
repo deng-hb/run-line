@@ -3,7 +3,6 @@ package com.denghb.runline.server.handler;
 import com.denghb.runline.server.RegistryHub;
 import com.denghb.runline.server.RunLineServer;
 import com.denghb.runline.server.tools.SourceTools;
-import com.sun.net.httpserver.HttpExchange;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Ref;
@@ -18,15 +17,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ProjectHttpHandler extends BaseHttpHandler {
 
-
-    @Override
-    public void handle(HttpExchange httpExchange) {
-        String path = getPath(httpExchange);
-        Object res = handle(path);
-        outJson(httpExchange, res);
-    }
-
-    public Object handle(String path) {
+    public Object handle(String path) throws Exception {
         Object res = "";
         if (path.startsWith("/projects")) {
             res = projects();// http://localhost:9966/projects

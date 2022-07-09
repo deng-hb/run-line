@@ -10,12 +10,24 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
 @Slf4j
-public class BaseHttpHandler implements HttpHandler {
+public abstract class BaseHttpHandler implements HttpHandler {
+
+    public abstract Object handle(String path) throws Exception;
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
+        long start = System.currentTimeMillis();
         String path = getPath(httpExchange);
-
+        try {
+            Object res = handle(path);
+            if (null != res) {
+                outJson(httpExchange, res);
+                log.info("{}:{}ms", path, (System.currentTimeMillis() - start));
+                return;
+            }
+        } catch (Exception e) {
+            log.error(String.format("\n%s\n%s", path, e.getMessage()), e);
+        }
         if ("/".equals(path)) {
             path = "/index.html";
         }

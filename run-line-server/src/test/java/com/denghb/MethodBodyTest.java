@@ -11,8 +11,13 @@ public class MethodBodyTest {
 
     @Test
     public void test() throws IOException {
-        String filePath = "/Users/mac/IntelliJIDEAProjects/run-line/run-line-server/src/test/java/com/denghb/MethodBodyTest.java";
-        List<Integer> integers = SourceTools.methodLines(filePath);
+        String filePath = "/Users/mac/IntelliJIDEAProjects/run-line/run-line-server/src/main/java/com/denghb/runline/server/tools/SourceTools.java";
+
+        for (int i = 0; i < 100; i++) {
+            long s = System.currentTimeMillis();
+            List<Integer> integers = SourceTools.methodLines(filePath);
+            System.out.println(integers);
+        }
 
     }
 

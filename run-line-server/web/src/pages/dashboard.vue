@@ -64,10 +64,10 @@ export default {
   },
   methods: {
     onPull(name) {
-      message.loading({ content: 'Pulling...', name });
+      message.loading({ content: 'Pulling...', key: name });
       http.get(`/git/pull/${name}`).then(res=>{
         console.log(res)
-        message.success({ content: 'Pulled!', name, duration: 2 });
+        message.success({ content: 'Pulled!', key: name, duration: 2 });
       })
     },
     showAdd() {

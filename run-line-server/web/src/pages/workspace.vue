@@ -148,19 +148,6 @@ export default {
       })
       let runline = res.runline;
 
-      let data = [];
-      for (let i in runline) {
-        let line = Number(runline[i].split(':')[0])
-        data.push({
-          range: new monaco.Range(line, 1, line, 1),
-          options: {
-            isWholeLine: true,
-            className: 'insert'
-          }
-        })
-      }
-
-      this.editor[key].deltaDecorations([], data);
     }
   }
 }
@@ -171,9 +158,6 @@ export default {
     width: 100%;
     height: calc(100vh - 60px);
     text-align: left;
-  }
-  .insert {
-    background: lightblue;
   }
   .layout {
     box-sizing: border-box;

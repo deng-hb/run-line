@@ -7,6 +7,11 @@ import java.io.IOException;
 
 public class RegistryHttpHandler extends BaseHttpHandler {
     @Override
+    public Object handle(String path) {
+        return null;
+    }
+
+    @Override
     public void handle(HttpExchange httpExchange) throws IOException {
         String path = getPath(httpExchange);
         String host = getRemoteHost(httpExchange);

@@ -22,12 +22,18 @@ public class SourceTools {
         boolean methodStart = false, methodDefine = false, commentMulti = false;
         int leftBrace = 0, rightBrace = 0;// {}
         StringBuilder methodBody = new StringBuilder();
+        long start = System.currentTimeMillis();
         for (int i = 0; i < list.size(); i++) {
             String line = list.get(i);
             int lineNumber = i + 1;
+            log.info("{}=={}ms", lineNumber, System.currentTimeMillis() - start);
+            start = System.currentTimeMillis();
             String codeLine = removeComment(line);
+            log.info("{} removeComment=={}ms", lineNumber, System.currentTimeMillis() - start);
             if (!commentMulti) {
+                long s = System.currentTimeMillis();
                 commentMulti = countKey(codeLine, "/*") > 0;
+                log.info("{} countKey=={}ms", lineNumber, System.currentTimeMillis() - s);
             }
             if (commentMulti) {
                 commentMulti = countKey(codeLine, "*/") > 0;
@@ -48,8 +54,12 @@ public class SourceTools {
                 //System.out.printf("%d   %s\n", lineNumber, line);
             }
             if (methodDefine && !commentMulti) {// 计算{}的数量
+                long s = System.currentTimeMillis();
                 leftBrace = countKey(methodBody, "{");
+                log.info("{} countKey1=={}ms", lineNumber, System.currentTimeMillis() - s);
+                s = System.currentTimeMillis();
                 rightBrace = countKey(methodBody, "}");
+                log.info("{} countKey2=={}ms", lineNumber, System.currentTimeMillis() - s);
             }
 
             if (methodDefine && leftBrace == rightBrace) {// 方法结束
@@ -99,7 +109,7 @@ public class SourceTools {
         int strLength = str.length();
         int keyLength = key.length();
         int count = 0;
-        for (int i = 0; i < strLength; i++) {
+        a: for (int i = 0; i < strLength; i++) {
             char c = str.charAt(i);
             // String s = "\""; 字符
             if ('\\' == c && i < strLength - 1 && '"' == str.charAt(i + 1)) {
@@ -117,7 +127,7 @@ public class SourceTools {
             if (!isVarStr) {
                 for (int j = 0; j < keyLength; j++) {
                     if (c != key.charAt(j)) {
-                        break;
+                        continue a;
                     }
                     if (i < strLength - 1) {
                         i++;
