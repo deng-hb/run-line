@@ -67,7 +67,11 @@ export default {
       message.loading({ content: 'Pulling...', key: name });
       http.get(`/git/pull/${name}`).then(res=>{
         console.log(res)
-        message.success({ content: 'Pulled!', key: name, duration: 2 });
+        if ('ok' == res) {
+          message.success({ content: 'Pulled!', key: name, duration: 2 });
+        } else {
+          message.error({ content: res, key: name, duration: 2 });
+        }
       })
     },
     showAdd() {
