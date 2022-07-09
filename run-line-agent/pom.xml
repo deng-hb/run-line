@@ -3,8 +3,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.denghb</groupId>
+        <artifactId>run-line</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
 
-    <groupId>com.denghb</groupId>
     <artifactId>run-line-agent</artifactId>
     <version>1.0-SNAPSHOT</version>
 
@@ -20,21 +24,21 @@
     </properties>
 
     <dependencies>
-<!--        <dependency>-->
-<!--            <groupId>org.ow2.asm</groupId>-->
-<!--            <artifactId>asm</artifactId>-->
-<!--            <version>${asm.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.ow2.asm</groupId>-->
-<!--            <artifactId>asm-util</artifactId>-->
-<!--            <version>${asm.version}</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.ow2.asm</groupId>-->
-<!--            <artifactId>asm-commons</artifactId>-->
-<!--            <version>${asm.version}</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.ow2.asm</groupId>-->
+        <!--            <artifactId>asm</artifactId>-->
+        <!--            <version>${asm.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.ow2.asm</groupId>-->
+        <!--            <artifactId>asm-util</artifactId>-->
+        <!--            <version>${asm.version}</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.ow2.asm</groupId>-->
+        <!--            <artifactId>asm-commons</artifactId>-->
+        <!--            <version>${asm.version}</version>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>junit</groupId>
@@ -53,31 +57,32 @@
                     <target>1.8</target>
                     <encoding>UTF-8</encoding>
                     <compilerArguments>
-                        <verbose />
+                        <verbose/>
                         <!-- 这个配置很特殊：windows下使用分号（;）分隔，linux/mac下使用冒号（:）分隔 -->
-                        <bootclasspath>${java.home}/lib/rt.jar:${java.home}/lib/jce.jar:${java.home}/lib/jsse.jar</bootclasspath>
+                        <bootclasspath>${java.home}/lib/rt.jar:${java.home}/lib/jce.jar:${java.home}/lib/jsse.jar
+                        </bootclasspath>
                     </compilerArguments>
                 </configuration>
             </plugin>
 
             <!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-jar-plugin</artifactId>-->
-<!--                <version>3.1.0</version>-->
-<!--                <configuration>-->
-<!--                    <archive>-->
-<!--                        <manifest>-->
-<!--                            <addClasspath>true</addClasspath>-->
-<!--                        </manifest>-->
-<!--                        <manifestEntries>-->
-<!--                            <Premain-Class>com.denghb.runline.agent.JavaAgent</Premain-Class>-->
-<!--                            <Agent-Class>com.denghb.runline.agent.JavaAgent</Agent-Class>-->
-<!--                            <Can-Redefine-Classes>true</Can-Redefine-Classes>-->
-<!--                            <Can-Retransform-Classes>true</Can-Retransform-Classes>-->
-<!--                        </manifestEntries>-->
-<!--                    </archive>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
+            <!--                <groupId>org.apache.maven.plugins</groupId>-->
+            <!--                <artifactId>maven-jar-plugin</artifactId>-->
+            <!--                <version>3.1.0</version>-->
+            <!--                <configuration>-->
+            <!--                    <archive>-->
+            <!--                        <manifest>-->
+            <!--                            <addClasspath>true</addClasspath>-->
+            <!--                        </manifest>-->
+            <!--                        <manifestEntries>-->
+            <!--                            <Premain-Class>com.denghb.runline.agent.RunLineAgent</Premain-Class>-->
+            <!--                            <Agent-Class>com.denghb.runline.agent.RunLineAgent</Agent-Class>-->
+            <!--                            <Can-Redefine-Classes>true</Can-Redefine-Classes>-->
+            <!--                            <Can-Retransform-Classes>true</Can-Retransform-Classes>-->
+            <!--                        </manifestEntries>-->
+            <!--                    </archive>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -87,8 +92,8 @@
                     </descriptorRefs>
                     <archive>
                         <manifestEntries>
-                            <Premain-Class>com.denghb.runline.agent.JavaAgent</Premain-Class>
-                            <Agent-Class>com.denghb.runline.agent.JavaAgent</Agent-Class>
+                            <Premain-Class>com.denghb.runline.agent.RunLineAgent</Premain-Class>
+                            <Agent-Class>com.denghb.runline.agent.RunLineAgent</Agent-Class>
                             <Can-Redefine-Classes>true</Can-Redefine-Classes>
                             <Can-Retransform-Classes>true</Can-Retransform-Classes>
                             <Can-Set-Native-Method-Prefix>true</Can-Set-Native-Method-Prefix>

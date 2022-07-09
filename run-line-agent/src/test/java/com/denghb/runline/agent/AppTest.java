@@ -1,8 +1,8 @@
-package com.denghb;
+package com.denghb.runline.agent;
 
 import static org.junit.Assert.assertTrue;
 
-import com.denghb.runline.agent.RunLineClassVisitor;
+import com.denghb.Hello;
 import jdk.internal.org.objectweb.asm.Opcodes;
 import jdk.internal.org.objectweb.asm.*;
 import org.junit.Test;
@@ -23,7 +23,8 @@ public class AppTest {
 
     @Test
     public void test() throws Exception {
-        String className = Hello.class.getName();
+
+        String className = Hello.class.getName().replaceAll("\\.", "/");
 
         ClassReader classReader = new ClassReader(className);
         ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
