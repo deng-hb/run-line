@@ -2,12 +2,14 @@ package com.denghb.runline.server.handler;
 
 import com.denghb.runline.server.RunLineServer;
 import com.sun.net.httpserver.HttpExchange;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.CreateBranchCommand;
 import org.eclipse.jgit.api.Git;
 
 import java.io.File;
 import java.io.IOException;
 
+@Slf4j
 public class GitOperateHttpHandler extends BaseHttpHandler {
 
 
@@ -43,7 +45,7 @@ public class GitOperateHttpHandler extends BaseHttpHandler {
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return e.getMessage();
         }
         return "ok";
@@ -57,7 +59,6 @@ public class GitOperateHttpHandler extends BaseHttpHandler {
                 .setCreateBranch(true)
                 .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
                 .setName(branchName)
-                .setForce(true)
                 .setStartPoint("origin/" + branchName)
                 .call();
     }

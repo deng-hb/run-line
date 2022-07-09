@@ -2,12 +2,14 @@ package com.denghb.runline.server.handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
+@Slf4j
 public class BaseHttpHandler implements HttpHandler {
 
     @Override
@@ -35,7 +37,7 @@ public class BaseHttpHandler implements HttpHandler {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -43,10 +45,10 @@ public class BaseHttpHandler implements HttpHandler {
         String path = httpExchange.getRequestURI().getPath();
         String remoteHost = getRemoteHost(httpExchange);
         if (path.contains("/..")) {
-            System.err.printf("%s:%s\n", remoteHost, path);
+            log.error("{}:{}", remoteHost, path);
             throw new IllegalArgumentException("Illegal Argument");
         }
-        System.out.printf("%s:%s\n", remoteHost, path);
+        log.info("{}:{}", remoteHost, path);
         // remove "/api"
         return path.replaceFirst("/api", "");
     }
@@ -62,7 +64,7 @@ public class BaseHttpHandler implements HttpHandler {
             httpExchange.getResponseHeaders().add("Content-Type", "application/json; charset=utf-8");
             out.write(res.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
     }
 }

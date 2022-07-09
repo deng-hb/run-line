@@ -1,38 +1,43 @@
 package com.denghb.runline.server.tools;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MethodTools {
+@Slf4j
+public class SourceTools {
 
-    public static List<Integer> statLine(String filePath) throws IOException {
+    /**
+     * 方法体所在行
+     *
+     * @param list
+     * @return
+     */
+    public static List<Integer> methodLines(List<String> list) {
         List<Integer> lines = new ArrayList<>();
-        LineNumberReader numberReader = new LineNumberReader(new FileReader(filePath));
-        String line;
         boolean methodStart = false, methodDefine = false, commentMulti = false;
         int leftBrace = 0, rightBrace = 0;// {}
         StringBuilder methodBody = new StringBuilder();
-        while (null != (line = numberReader.readLine())) {
-            int lineNumber = numberReader.getLineNumber();
-            if (14 <= lineNumber) {
-                System.out.print("");
-            }
+        for (int i = 0; i < list.size(); i++) {
+            String line = list.get(i);
+            int lineNumber = i + 1;
             String codeLine = removeComment(line);
             if (!commentMulti) {
-                commentMulti = count(codeLine, "/*") > 0;
+                commentMulti = countKey(codeLine, "/*") > 0;
             }
             if (commentMulti) {
-                commentMulti = count(codeLine, "*/") > 0;
+                commentMulti = countKey(codeLine, "*/") > 0;
                 methodStart = false;
             }
             if (!methodStart && !commentMulti) {
-                methodStart = count(codeLine, ")") > 0;
+                methodStart = countKey(codeLine, ")") > 0;
             }
             if (methodStart && !methodDefine) {
-                methodDefine = count(codeLine, "{") > 0;
+                methodDefine = countKey(codeLine, "{") > 0;
             }
             if (methodDefine && line.trim().length() > 0) {
                 methodBody.append(codeLine);
@@ -43,8 +48,8 @@ public class MethodTools {
                 //System.out.printf("%d   %s\n", lineNumber, line);
             }
             if (methodDefine && !commentMulti) {// 计算{}的数量
-                leftBrace = count(methodBody, "{");
-                rightBrace = count(methodBody, "}");
+                leftBrace = countKey(methodBody, "{");
+                rightBrace = countKey(methodBody, "}");
             }
 
             if (methodDefine && leftBrace == rightBrace) {// 方法结束
@@ -58,13 +63,38 @@ public class MethodTools {
         return lines;
     }
 
+    public static List<Integer> methodLines(String filePath) {
+
+        List<String> list = readCodes(filePath);
+
+        return methodLines(list);
+    }
+
+    public static List<String> readCodes(String filePath) {
+
+        List<String> list = new ArrayList<>();
+        try {
+            LineNumberReader numberReader = null;
+            numberReader = new LineNumberReader(new FileReader(filePath));
+            String code;
+            while (null != (code = numberReader.readLine())) {
+                int lineNumber = numberReader.getLineNumber();
+                list.add(code);
+            }
+
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+        return list;
+    }
+
     /**
      * 不计算""变量内的字符
      *
      * @param key
      * @return
      */
-    public static int count(CharSequence str, String key) {
+    public static int countKey(CharSequence str, String key) {
         boolean isVarStr = false;
         int strLength = str.length();
         int keyLength = key.length();

@@ -3,7 +3,9 @@ package com.denghb.runline.server.handler;
 import com.denghb.runline.server.Consts;
 import com.denghb.runline.server.RegistryHub;
 import com.denghb.runline.server.RunLineServer;
+import com.denghb.runline.server.tools.SourceTools;
 import com.sun.net.httpserver.HttpExchange;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.attributes.Attribute;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -29,6 +31,7 @@ import java.util.*;
  * /runline/${project} -- 列出所有比master有变更的java
  * /runline/${project}/${filepath}.java -- 具体对比的行，和运行情况
  */
+@Slf4j
 public class RunLineHttpHandler extends BaseHttpHandler {
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
@@ -41,12 +44,14 @@ public class RunLineHttpHandler extends BaseHttpHandler {
         String branch = git.getRepository().getBranch();
 
         if (path.endsWith(".java")) {
-            jsonObject.put("content", readContent(filePath));
+            List<String> content = readContent(filePath);
+            jsonObject.put("content", content);
+            jsonObject.put("methodLine", SourceTools.methodLines(content));
             String sourceFile = path.substring(path.indexOf(Consts.SOURCE_FOLDER) + Consts.SOURCE_FOLDER.length());
             try {
                 jsonObject.put("diff", gitDiff(git, branch, sourceFile));
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             }
 
             String api = String.format("/api/runline/%s/%s/%s", projectName, branch, sourceFile.replace(".java", ""));
@@ -59,7 +64,7 @@ public class RunLineHttpHandler extends BaseHttpHandler {
                 JSONArray jsonArray = gitDiff(git, branch, null);
                 outJson(httpExchange, jsonArray);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             }
         }
 
@@ -67,19 +72,19 @@ public class RunLineHttpHandler extends BaseHttpHandler {
     }
 
     // 文件内容
-    private JSONArray readContent(String filePath) {
-        JSONArray jsonArray = new JSONArray();
+    private List<String> readContent(String filePath) {
+        List<String> list = new ArrayList<>();
         try (FileReader fileReader = new FileReader(filePath);
              LineNumberReader reader = new LineNumberReader(fileReader)) {
             String line;
             while ((line = reader.readLine()) != null) {
-                jsonArray.put(line);
+                list.add(line);
             }
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
-        return jsonArray;
+        return list;
     }
 
     // 和master分支比较
@@ -178,7 +183,7 @@ public class RunLineHttpHandler extends BaseHttpHandler {
 
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error(e.getMessage(), e);
             }
         }
         return new JSONArray(lines);
