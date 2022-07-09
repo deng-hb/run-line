@@ -22,7 +22,7 @@ public class RegistryHttpHandler extends BaseHttpHandler {
         String packages = split[4];
         String port = split[5];
 
-        RegistryHub.put(project, branch, host, port);
+        RegistryHub.register(project, branch, host, port);
 
         outJson(httpExchange, "ok");
     }

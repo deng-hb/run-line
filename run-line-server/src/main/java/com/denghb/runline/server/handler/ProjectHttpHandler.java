@@ -2,7 +2,6 @@ package com.denghb.runline.server.handler;
 
 import com.denghb.runline.server.RegistryHub;
 import com.denghb.runline.server.RunLineServer;
-import com.denghb.runline.server.tools.SourceTools;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Ref;
@@ -11,6 +10,10 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,11 +82,28 @@ public class ProjectHttpHandler extends BaseHttpHandler {
             JSONObject subJsonObject = readFiles(file.listFiles());
             jsonObject.put(projectName, subJsonObject);
         } else {
-            jsonObject.put("content", SourceTools.readCodes(filePath));
+            jsonObject.put("content", readContent(filePath));
         }
         return jsonObject;
     }
 
+    public static List<String> readContent(String filePath) {
+
+        List<String> list = new ArrayList<>();
+        try {
+            LineNumberReader numberReader = null;
+            numberReader = new LineNumberReader(new FileReader(filePath));
+            String code;
+            while (null != (code = numberReader.readLine())) {
+                int lineNumber = numberReader.getLineNumber();
+                list.add(code);
+            }
+
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+        return list;
+    }
     // 文件目录
     private JSONObject readFiles(File[] files) {
         JSONObject jsonObject = new JSONObject();

@@ -11,9 +11,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
+/**
+ * 返回两行
+ * 第一行源代码行号,行号
+ * 第二行运行过的行号:时间戳,行号:时间戳
+ */
 public class RunLineHttpHandler implements HttpHandler {
 
-    private String workspace;
+    private final String workspace;
 
     public RunLineHttpHandler(String workspace) {
         this.workspace = workspace;
@@ -26,34 +31,43 @@ public class RunLineHttpHandler implements HttpHandler {
         try (OutputStream out = httpExchange.getResponseBody()) {
 
             String path = httpExchange.getRequestURI().getPath();
+            if (path.contains("/..")) {
+                throw new IllegalArgumentException();
+            }
             String runlinePath = path.replaceFirst("/api/runline", workspace);
 
-            StringBuilder lines = new StringBuilder();
-            File[] files = new File(runlinePath).listFiles();
-            readFiles(files, lines);
+            StringBuilder allline = new StringBuilder();
+            File[] files = new File(String.format("%s/.java", runlinePath)).listFiles();
+            readFiles(files, allline, false);
+
+            StringBuilder runline = new StringBuilder();
+            files = new File(runlinePath).listFiles((dir, name) -> !".java".equals(name));
+            readFiles(files, runline, true);
 
             httpExchange.sendResponseHeaders(200, 0);
-            out.write(lines.toString().getBytes(StandardCharsets.UTF_8));
+            out.write(String.format("%s\n%s", allline, runline).getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
-    private void readFiles(File[] files, StringBuilder lines) {
+    private void readFiles(File[] files, StringBuilder sb, boolean addTime) {
         if (null == files) {
             return;
         }
         for (File file : files) {
             if (file.isDirectory()) {
-                readFiles(file.listFiles(), lines);
+                readFiles(file.listFiles(), sb, addTime);
             } else {
-                if (lines.length() > 0) {
-                    lines.append(",");
+                if (sb.length() > 0) {
+                    sb.append(",");
                 }
-                lines.append(file.getName());
-                lines.append(":");
-                lines.append(createTime(file));
+                sb.append(file.getName());
+                if (addTime) {
+                    sb.append(":");
+                    sb.append(createTime(file));
+                }
             }
         }
     }

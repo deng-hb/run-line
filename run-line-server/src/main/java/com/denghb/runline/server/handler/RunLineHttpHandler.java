@@ -3,7 +3,6 @@ package com.denghb.runline.server.handler;
 import com.denghb.runline.server.Consts;
 import com.denghb.runline.server.RegistryHub;
 import com.denghb.runline.server.RunLineServer;
-import com.denghb.runline.server.tools.SourceTools;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.diff.DiffEntry;
@@ -20,12 +19,14 @@ import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.*;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * /runline/${project} -- 列出所有比master有变更的java
@@ -44,19 +45,17 @@ public class RunLineHttpHandler extends BaseHttpHandler {
 
         if (path.endsWith(".java")) {
             JSONObject jsonObject = new JSONObject();
-            List<String> content = SourceTools.readCodes(filePath);
+            List<String> content = readContent(filePath);
             jsonObject.put("content", content);
-            jsonObject.put("methodLine", SourceTools.methodLines(content));
 
             String sourceFile = path.substring(path.indexOf(Consts.SOURCE_FOLDER) + Consts.SOURCE_FOLDER.length());
-            try {
-                jsonObject.put("diff", gitDiff(git, branch, sourceFile));
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
+            jsonObject.put("gitdiff", gitDiff(git, branch, sourceFile));
+
+            List<List<String>> res = RegistryHub.getRunline(projectName, branch, sourceFile.replace(".java", ""));
+            if (res.size() == 2) {
+                jsonObject.put("allline", res.get(0));
+                jsonObject.put("runline", res.get(1));
             }
-            String api = String.format("/api/runline/%s/%s/%s", projectName, branch, sourceFile.replace(".java", ""));
-            List<String> clients = RegistryHub.getOnline(projectName, branch);
-            jsonObject.put("runline", runline(clients, api));
 
             return jsonObject;
 
@@ -65,6 +64,24 @@ public class RunLineHttpHandler extends BaseHttpHandler {
         }
 
 
+    }
+
+    public static List<String> readContent(String filePath) {
+
+        List<String> list = new ArrayList<>();
+        try {
+            LineNumberReader numberReader = null;
+            numberReader = new LineNumberReader(new FileReader(filePath));
+            String code;
+            while (null != (code = numberReader.readLine())) {
+                int lineNumber = numberReader.getLineNumber();
+                list.add(code);
+            }
+
+        } catch (IOException e) {
+            log.error(e.getMessage(), e);
+        }
+        return list;
     }
 
     // 和master分支比较
@@ -139,31 +156,4 @@ public class RunLineHttpHandler extends BaseHttpHandler {
         return jsonArray;
     }
 
-    //  运行过的行数
-    private JSONArray runline(List<String> clients, String api) {
-        Set<String> lines = new HashSet<>();
-        for (String client : clients) {
-            try {
-                String url = String.format("http://%s%s", client, api);
-                URLConnection connection = new URL(url).openConnection();
-                try (InputStream in = connection.getInputStream()) {
-
-                    ByteArrayOutputStream output = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[1024];
-                    int len;
-                    while ((len = in.read(buffer)) != -1) {
-                        output.write(buffer, 0, len);
-                    }
-                    String res = output.toString();
-                    if (null != res && res.length() > 0) {
-                        lines.addAll(Arrays.asList(res.split(",")));
-                    }
-
-                }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-        }
-        return new JSONArray(lines);
-    }
 }
