@@ -13,7 +13,7 @@ public class RunLineClassVisitor extends ClassVisitor {
 
     public RunLineClassVisitor(int api, ClassVisitor classVisitor, String className) {
         super(api, classVisitor);
-        this.className = className.replaceFirst("\\$", "/$");
+        this.className = className.replace("$", "/$");
     }
 
     @Override

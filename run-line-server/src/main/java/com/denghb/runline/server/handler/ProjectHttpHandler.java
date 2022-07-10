@@ -1,7 +1,9 @@
 package com.denghb.runline.server.handler;
 
+import com.denghb.runline.server.GitUtil;
 import com.denghb.runline.server.RegistryHub;
 import com.denghb.runline.server.RunLineServer;
+import com.sun.net.httpserver.HttpExchange;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.lib.Ref;
@@ -15,19 +17,49 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 项目接口
+ */
 @Slf4j
 public class ProjectHttpHandler extends BaseHttpHandler {
 
-    public Object handle(String path) throws Exception {
-        Object res = "";
-        if (path.startsWith("/projects")) {
-            res = projects();// http://localhost:9966/projects
-        } else {
-            res = projectPath(path);// http://localhost:9966/project/run-line
+
+    @Override
+    public void handle(HttpExchange httpExchange) throws IOException {
+        Long start = System.currentTimeMillis();
+        String path = getPath(httpExchange);
+        Object res = "ok";
+        try {
+            Map<String, String> params = getParameters(httpExchange);
+            if (path.equals("/project")) {// 项目操作
+                String opt = params.get("opt");
+                String project = params.get("project");
+                if ("del".equals(opt)) {
+                    GitUtil.del(project);
+                } else if ("add".equals(opt)) {
+                    String url = params.get("url");
+                    GitUtil.clone(project, url);
+                } else if ("upd".equals(opt)) {
+                    // 刷新 fetch pull
+                    GitUtil.pull(project);
+                    GitUtil.fetch(project);
+                } else {
+                    // 项目列表
+                    res = projects();
+                }
+            } else {
+                res = projectPath(path);
+            }
+
+        } catch (Exception e) {
+            log.error(String.format("\n%s\n%s", httpExchange.getRequestURI(), e.getMessage()), e);
+            res = e.getMessage();
         }
-        return res;
+
+        outJson(httpExchange, res);
     }
 
     // 已经clone下来的项目
@@ -104,6 +136,7 @@ public class ProjectHttpHandler extends BaseHttpHandler {
         }
         return list;
     }
+
     // 文件目录
     private JSONObject readFiles(File[] files) {
         JSONObject jsonObject = new JSONObject();

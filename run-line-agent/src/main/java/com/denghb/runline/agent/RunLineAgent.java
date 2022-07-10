@@ -44,7 +44,7 @@ public class RunLineAgent {
         String url = String.format("http://%s/api/registry/%s/%s/%s/%d", server, project, branch, packages, port);
         System.out.println("registry server:" + url);
 
-        // 10s 定时发送当前项目信息给服务端
+        // 1s后每10s定时发送当前项目信息给服务端
         new Timer().schedule(new TimerTask() {
 
             @Override
@@ -57,7 +57,7 @@ public class RunLineAgent {
                     e.printStackTrace();
                 }
             }
-        }, 0, 10 * 1000);
+        }, 1000, 10 * 1000);
 
         // 提供统计服务
         try {

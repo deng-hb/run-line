@@ -5,12 +5,10 @@ import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
 
+/**
+ * 注册中心接口
+ */
 public class RegistryHttpHandler extends BaseHttpHandler {
-    @Override
-    public Object handle(String path) {
-        return null;
-    }
-
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
         String path = getPath(httpExchange);

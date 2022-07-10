@@ -28,8 +28,8 @@ public class RunLineServer {
 
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         server.setExecutor(Executors.newFixedThreadPool(4));
-        server.createContext("/", new IndexHttpHandler());
-        server.createContext("/api/git", new GitOperateHttpHandler());
+        server.createContext("/", new BaseHttpHandler());
+        // server.createContext("/api/git", new GitOperateHttpHandler());
         server.createContext("/api/project", new ProjectHttpHandler());
         server.createContext("/api/registry", new RegistryHttpHandler());
         server.createContext("/api/runline", new RunLineHttpHandler());

@@ -7,27 +7,19 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
-public abstract class BaseHttpHandler implements HttpHandler {
-
-    public abstract Object handle(String path) throws Exception;
+public class BaseHttpHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
-        long start = System.currentTimeMillis();
         String path = getPath(httpExchange);
-        try {
-            Object res = handle(path);
-            if (null != res) {
-                outJson(httpExchange, res);
-                log.info("{}:{}ms", path, (System.currentTimeMillis() - start));
-                return;
-            }
-        } catch (Exception e) {
-            log.error(String.format("\n%s\n%s", path, e.getMessage()), e);
-        }
         if ("/".equals(path)) {
             path = "/index.html";
         }
@@ -78,5 +70,26 @@ public abstract class BaseHttpHandler implements HttpHandler {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    protected Map<String, String> getParameters(HttpExchange httpExchange) {
+        String query = httpExchange.getRequestURI().getQuery();
+        Map<String, String> result = new HashMap<>();
+        if (query == null || query.trim().length() == 0) {
+            return result;
+        }
+        String[] items = query.split("&");
+        Arrays.stream(items).forEach(item -> {
+            String[] keyAndVal = item.split("=");
+            if (keyAndVal.length == 2) {
+                try {
+                    String key = URLDecoder.decode(keyAndVal[0], "utf8");
+                    String val = URLDecoder.decode(keyAndVal[1], "utf8");
+                    result.put(key, val);
+                } catch (UnsupportedEncodingException e) {
+                }
+            }
+        });
+        return result;
     }
 }
