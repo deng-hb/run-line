@@ -37,15 +37,15 @@ public class ProjectHttpHandler extends BaseHttpHandler {
             if (path.equals("/project")) {// 项目操作
                 String opt = params.get("opt");
                 String project = params.get("project");
+                String branch = params.get("branch");
                 if ("del".equals(opt)) {
                     GitUtil.del(project);
                 } else if ("add".equals(opt)) {
                     String url = params.get("url");
-                    String branch = params.get("branch");
                     GitUtil.clone(project, branch, url);
-                    RegistryHub.doClear(project, branch);
                 } else if ("upd".equals(opt)) {
                     // 刷新 fetch pull
+                    RegistryHub.doClear(project, branch);
                     GitUtil.pull(project);
                     GitUtil.fetch(project);
                 } else {

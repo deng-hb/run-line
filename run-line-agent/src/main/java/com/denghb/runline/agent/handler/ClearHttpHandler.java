@@ -22,23 +22,20 @@ public class ClearHttpHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
         // /runline/run-line/master/com/denghb/App
-
+        String path = httpExchange.getRequestURI().getPath();
         try (OutputStream out = httpExchange.getResponseBody()) {
-
-            String path = httpExchange.getRequestURI().getPath();
             if (path.contains("/..")) {
                 throw new IllegalArgumentException();
             }
             // 清理
             String runlinePath = path.replaceFirst("/api/runline/clear", workspace);
-            File file = new File(runlinePath);
-            if (file.isDirectory()) {
-                delFiles(file.listFiles());
-            }
-            file.delete();
+            System.out.printf("clear:%s%n", runlinePath);
+            delFiles(new File(runlinePath).listFiles());
+
             httpExchange.sendResponseHeaders(200, 0);
             out.write("ok".getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
+            System.err.println(path);
             e.printStackTrace();
         }
 
@@ -50,7 +47,7 @@ public class ClearHttpHandler implements HttpHandler {
         }
         for (File file : files) {
             if (file.isDirectory()) {
-                delFiles(file.listFiles());
+                delFiles(file.listFiles((dir, name) -> !".java".equals(name)));
             }
             file.delete();
         }

@@ -18,7 +18,7 @@
               title="确认要更新?"
               ok-text="Yes"
               cancel-text="No"
-              @confirm="onUpd(item.name)"
+              @confirm="onUpd(item)"
             >
               <a href="#"><reload-outlined /></a>
             </a-popconfirm>
@@ -124,9 +124,11 @@ export default {
         })
       });
     },
-    onUpd(project) {
+    onUpd(item) {
+      let project = item.name;
+      let branch = item.git.branch;
       message.loading({ content: 'Doing...', key: project, }, 0);
-      http.get(`/project`, { opt: 'upd', project }).then(res=>{
+      http.get(`/project`, { opt: 'upd', project, branch }).then(res=>{
         console.log(res)
         if ('ok' == res) {
           message.success({ content: 'Done!', key: project, duration: 2 });
