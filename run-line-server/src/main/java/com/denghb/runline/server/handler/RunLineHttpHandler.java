@@ -1,6 +1,7 @@
 package com.denghb.runline.server.handler;
 
 import com.denghb.runline.server.Consts;
+import com.denghb.runline.server.GitUtil;
 import com.denghb.runline.server.RegistryHub;
 import com.denghb.runline.server.RunLineServer;
 import com.sun.net.httpserver.HttpExchange;
@@ -20,7 +21,6 @@ import org.eclipse.jgit.util.io.DisabledOutputStream;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
@@ -37,14 +37,11 @@ public class RunLineHttpHandler extends BaseHttpHandler {
     public void handle(HttpExchange httpExchange) throws IOException {
         String path = getPath(httpExchange);
         String filePath = path.replaceFirst("/runline", RunLineServer.WORKSPACE);
-        String projectName = path.split("/")[2];
-        String projectPath = String.format("%s/%s", RunLineServer.WORKSPACE, projectName);
-
-        Git git = Git.open(new File(projectPath));
-        String branch = git.getRepository().getBranch();
+        String project = path.split("/")[2];
 
         Object res = "ok";
-        try {
+        try (Git git = Git.open(GitUtil.getExistProject(project))) {
+            String branch = git.getRepository().getBranch();
             if (path.endsWith(".java")) {
                 JSONObject jsonObject = new JSONObject();
                 List<String> content = readContent(filePath);
@@ -53,7 +50,7 @@ public class RunLineHttpHandler extends BaseHttpHandler {
                 String sourceFile = path.substring(path.indexOf(Consts.SOURCE_FOLDER) + Consts.SOURCE_FOLDER.length());
                 jsonObject.put("gitdiff", gitDiff(git, branch, sourceFile));
 
-                List<List<String>> runline = RegistryHub.getRunline(projectName, branch, sourceFile.replace(".java", ""));
+                List<List<String>> runline = RegistryHub.getRunline(project, branch, sourceFile.replace(".java", ""));
                 if (runline.size() == 2) {
                     jsonObject.put("allline", runline.get(0));
                     jsonObject.put("runline", runline.get(1));
@@ -68,7 +65,7 @@ public class RunLineHttpHandler extends BaseHttpHandler {
                     String file = jsonObject.getString("file");
 
                     String sourceFile = file.substring(file.indexOf(Consts.SOURCE_FOLDER) + Consts.SOURCE_FOLDER.length());
-                    List<List<String>> runline = RegistryHub.getRunline(projectName, branch, sourceFile.replace(".java", ""));
+                    List<List<String>> runline = RegistryHub.getRunline(project, branch, sourceFile.replace(".java", ""));
                     if (runline.size() == 2) {
                         Set<String> allLine = new HashSet<>(runline.get(0));
                         double allLineSize = allLine.size() * 1.;

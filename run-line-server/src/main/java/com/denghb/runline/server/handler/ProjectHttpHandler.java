@@ -42,7 +42,8 @@ public class ProjectHttpHandler extends BaseHttpHandler {
                     GitUtil.del(project);
                 } else if ("add".equals(opt)) {
                     String url = params.get("url");
-                    GitUtil.clone(project, branch, url);
+                    GitUtil.clone(project, url);
+                    GitUtil.checkout(project, branch);
                 } else if ("upd".equals(opt)) {
                     // 刷新 fetch pull
                     RegistryHub.doClear(project, branch);
@@ -90,8 +91,7 @@ public class ProjectHttpHandler extends BaseHttpHandler {
 
     private JSONObject gitInfo(File file) {
         JSONObject jsonObject = new JSONObject();
-        try {
-            Git git = Git.open(file);
+        try (Git git = Git.open(file)) {
             jsonObject.put("branch", git.getRepository().getBranch());
 
             List<String> branchList = git.branchList().call().stream().map(Ref::getName).collect(Collectors.toList());
