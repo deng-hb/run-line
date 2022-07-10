@@ -1,6 +1,7 @@
 package com.denghb.runline.agent;
 
 import com.denghb.runline.agent.handler.ClearHttpHandler;
+import com.denghb.runline.agent.handler.InstHttpHandler;
 import com.denghb.runline.agent.handler.StatHttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
@@ -24,7 +25,6 @@ public class RunLineAgent {
 
     public static void premain(String agentArgs, Instrumentation inst) {
         System.out.println("premain agentArgs: " + agentArgs);
-
         if (null == agentArgs || agentArgs.split(";").length != 5) {
             throw new IllegalArgumentException("-javaagent:/path/run-line-agent.jar=${workspace};${project};${branch};${packages};${server}");
         }
@@ -67,6 +67,7 @@ public class RunLineAgent {
             httpServer.setExecutor(Executors.newCachedThreadPool());
             httpServer.createContext("/api/runline/stat", new StatHttpHandler(workspace));
             httpServer.createContext("/api/runline/clear", new ClearHttpHandler(workspace));
+            httpServer.createContext("/api/runline/inst", new InstHttpHandler(inst));
             httpServer.start();
         } catch (Exception e) {
             e.printStackTrace();
