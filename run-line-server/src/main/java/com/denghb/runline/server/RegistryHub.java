@@ -63,7 +63,7 @@ public class RegistryHub {
      * @return
      */
     public static List<List<String>> getRunline(String project, String branch, String source) {
-        String api = String.format("/api/runline/%s/%s/%s", project, branch, source);
+        String api = String.format("/api/runline/stat/%s/%s/%s", project, branch, source);
         List<String> clients = RegistryHub.getOnline(project, branch);
 
         List<List<String>> list = new ArrayList<>();
@@ -121,4 +121,13 @@ public class RegistryHub {
         return null;
     }
 
+    public static void doClear(String project, String branch) {
+        String api = String.format("/api/runline/clear/%s/%s", project, branch);
+        List<String> clients = RegistryHub.getOnline(project, branch);
+
+        for (String client : clients) {
+            String url = String.format("http://%s%s", client, api);
+            String res = httpGet(url);
+        }
+    }
 }

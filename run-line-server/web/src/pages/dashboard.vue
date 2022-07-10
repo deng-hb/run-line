@@ -13,7 +13,6 @@
             </template>
           </a-list-item-meta>
           <template #actions>
-            <router-link :to="'/workspace/' + item.name">Edit</router-link>
             <router-link :to="'/runline/' + item.name">Runline</router-link>
             <a-popconfirm
               title="确认要更新?"
@@ -21,7 +20,7 @@
               cancel-text="No"
               @confirm="onUpd(item.name)"
             >
-              <a href="#">Update</a>
+              <a href="#"><reload-outlined /></a>
             </a-popconfirm>
             <a-popconfirm
               title="确认要删除?"
@@ -29,7 +28,7 @@
               cancel-text="No"
               @confirm="onDel(item.name)"
             >
-              <a href="#">Delete</a>
+              <a href="#"><delete-outlined /></a>
             </a-popconfirm>
           </template>
         </a-list-item>
@@ -40,20 +39,31 @@
     <a-modal
       title="Add Project"
       v-model:visible="addModal.visible"
-      @ok="onClone"
     >
       <template #footer>
         <a-button key="submit" type="primary" :loading="addModal.loading" @click="onAdd">Submit</a-button>
       </template>
-      <a-input v-model:value="addModal.project" placeholder="Project Name" />
-      <a-input v-model:value="addModal.remoteUrl" placeholder="Git SSH URL" />
+      <a-form ref="formRef" :model="addModal.data" layout="vertical" name="form_in_modal">
+        <a-form-item label="Project Name" name="project"
+          :rules="[{ required: true }]" >
+          <a-input v-model:value="addModal.data.project" />
+        </a-form-item>
+        <a-form-item label="Git SSH URL" name="url"
+          :rules="[{ required: true }]" >
+          <a-input v-model:value="addModal.data.url" />
+        </a-form-item>
+        <a-form-item label="Project Branch" name="branch"
+          :rules="[{ required: true}]" >
+          <a-input v-model:value="addModal.data.branch" />
+        </a-form-item>
+      </a-form>
     </a-modal>
   </div>
 </template>
 
 <script>
 import { message } from 'ant-design-vue';
-import { ProjectOutlined } from '@ant-design/icons-vue';
+import { ProjectOutlined, ReloadOutlined, DeleteOutlined } from '@ant-design/icons-vue';
 
 import http from '../http.js'
 
@@ -61,15 +71,21 @@ export default {
   name: 'Dashboard',
   components: {
     ProjectOutlined,
+    ReloadOutlined,
+    DeleteOutlined,
   },
   data () {
     return {
       projects: [],
       addModal: {
         visible: false,
-        remoteUrl: '',
         loading: false,
-        project: ''
+        data: {
+          url: '',
+          project: '',
+          branch: '',
+          opt: 'add',
+        }
       }
     }
   },
@@ -87,28 +103,29 @@ export default {
       this.addModal.visible = true;
     },
     onAdd() {
-      if (this.addModal.remoteUrl.indexOf('git@') == -1) {
-        message.error('请输入正确的地址');
-        return
-      }
-      this.addModal.loading = true
-      http.get(`/project`, {
-        project: this.addModal.project,
-        url: this.addModal.remoteUrl,
-        opt: 'add',
-      }).then(res=>{
-        console.log(res)
-        this.addModal.loading = false
-        if ('ok' != res) {
-          message.error(res);
-        } else {
-          this.addModal.visible = false;
-          this.loadProject();
+      this.$refs.formRef.validateFields().then(values => {
+        console.log(values);
+        console.log(this.addModal.data);
+
+        if (values.url.indexOf('git@') == -1) {
+          message.error('请输入正确的地址');
+          return
         }
-      })
+        this.addModal.loading = true
+        http.get(`/project`, this.addModal.data).then(res=>{
+          console.log(res)
+          this.addModal.loading = false
+          if ('ok' != res) {
+            message.error(res);
+          } else {
+            this.addModal.visible = false;
+            this.loadProject();
+          }
+        })
+      });
     },
     onUpd(project) {
-      message.loading({ content: 'Doing...', key: project });
+      message.loading({ content: 'Doing...', key: project, }, 0);
       http.get(`/project`, { opt: 'upd', project }).then(res=>{
         console.log(res)
         if ('ok' == res) {
@@ -120,7 +137,7 @@ export default {
       })
     },
     onDel(project) {
-      message.loading({ content: 'Doing...', key: project });
+      message.loading({ content: 'Doing...', key: project }, 0);
 
       http.get(`/project`, { opt: 'del', project }).then(res=>{
         console.log(res)

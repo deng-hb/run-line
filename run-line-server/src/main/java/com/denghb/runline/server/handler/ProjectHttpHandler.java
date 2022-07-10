@@ -41,7 +41,9 @@ public class ProjectHttpHandler extends BaseHttpHandler {
                     GitUtil.del(project);
                 } else if ("add".equals(opt)) {
                     String url = params.get("url");
-                    GitUtil.clone(project, url);
+                    String branch = params.get("branch");
+                    GitUtil.clone(project, branch, url);
+                    RegistryHub.doClear(project, branch);
                 } else if ("upd".equals(opt)) {
                     // 刷新 fetch pull
                     GitUtil.pull(project);

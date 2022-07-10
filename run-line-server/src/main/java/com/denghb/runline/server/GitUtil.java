@@ -52,11 +52,12 @@ public class GitUtil {
         return diffs;
     }
 
-    public static void clone(String project, String url) throws Exception {
+    public static void clone(String project, String branch, String url) throws Exception {
         File file = getNotExistProject(project);
         Git git = Git.cloneRepository()
                 .setURI(url)
                 .setBare(false)
+                .setBranch(branch)
                 .setDirectory(file)
                 .setCloneAllBranches(true)
                 .setCloneSubmodules(true)
@@ -91,12 +92,12 @@ public class GitUtil {
     }
 
     private static void delFiles(File[] files) {
+        if (null == files) {
+            return;
+        }
         for (File file : files) {
             if (file.isDirectory()) {
-                File[] files1 = file.listFiles();
-                if (null != files1 && files1.length > 0) {
-                    delFiles(files1);
-                }
+                delFiles(file.listFiles());
             }
             file.delete();
         }
@@ -116,7 +117,7 @@ public class GitUtil {
         String projectPath = getProjectPath(project);
         File file = new File(projectPath);
         if (!file.exists()) {
-            throw new IllegalArgumentException(String.format("[%s] not exist", project));
+            throw new IllegalArgumentException(String.format("project [%s] not exist", project));
         }
         return file;
     }
@@ -125,7 +126,7 @@ public class GitUtil {
         String projectPath = getProjectPath(project);
         File file = new File(projectPath);
         if (file.exists()) {
-            throw new IllegalArgumentException(String.format("[%s] exist", project));
+            throw new IllegalArgumentException(String.format("project [%s] exist", project));
         }
         return file;
     }

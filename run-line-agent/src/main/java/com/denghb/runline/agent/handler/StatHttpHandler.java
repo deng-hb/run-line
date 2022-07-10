@@ -1,4 +1,4 @@
-package com.denghb.runline.agent;
+package com.denghb.runline.agent.handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -16,17 +16,17 @@ import java.nio.file.attribute.BasicFileAttributes;
  * 第一行源代码行号,行号
  * 第二行运行过的行号:时间戳,行号:时间戳
  */
-public class RunLineHttpHandler implements HttpHandler {
+public class StatHttpHandler implements HttpHandler {
 
     private final String workspace;
 
-    public RunLineHttpHandler(String workspace) {
+    public StatHttpHandler(String workspace) {
         this.workspace = workspace;
     }
 
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
-        // /runline/run-line/master/com/denghb/App
+        // /runline/stat/run-line/master/com/denghb/App
 
         try (OutputStream out = httpExchange.getResponseBody()) {
 
@@ -34,7 +34,7 @@ public class RunLineHttpHandler implements HttpHandler {
             if (path.contains("/..")) {
                 throw new IllegalArgumentException();
             }
-            String runlinePath = path.replaceFirst("/api/runline", workspace);
+            String runlinePath = path.replaceFirst("/api/runline/stat", workspace);
 
             StringBuilder allline = new StringBuilder();
             File[] files = new File(String.format("%s/.java", runlinePath)).listFiles();

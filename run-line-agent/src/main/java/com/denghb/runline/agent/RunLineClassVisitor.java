@@ -40,13 +40,11 @@ public class RunLineClassVisitor extends ClassVisitor {
     @Override
     public void visitInnerClass(String s, String s1, String s2, int i) {
         super.visitInnerClass(s, s1, s2, i);
-        System.out.printf("%s\t%s\t%s\t%d%n", s, s1, s2, i);
     }
 
     @Override
     public void visitOuterClass(String s, String s1, String s2) {
         super.visitOuterClass(s, s1, s2);
-        System.out.printf("%s\t%s\t%s%n", s, s1, s2);
     }
 
 
