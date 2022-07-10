@@ -1,5 +1,6 @@
 package com.denghb.runline.agent;
 
+import com.denghb.runline.agent.handler.ClearHttpHandler;
 import com.denghb.runline.agent.handler.StatHttpHandler;
 import com.sun.net.httpserver.HttpServer;
 
@@ -42,7 +43,7 @@ public class RunLineAgent {
         inst.addTransformer(new RunLineTransformer(packages), true);
 
         int port = 17950 + new Random().nextInt(99);
-        String url = String.format("http://%s/api/registry/%s/%s/%s/%d", server, project, branch, packages, port);
+        String url = String.format("http://%s/api/registry?project=%s&branch=%s&port=%d", server, project, branch, port);
         System.out.println("registry server:" + url);
 
         // 1s后每10s定时发送当前项目信息给服务端
@@ -65,7 +66,7 @@ public class RunLineAgent {
             HttpServer httpServer = HttpServer.create(new InetSocketAddress(port), 0);
             httpServer.setExecutor(Executors.newCachedThreadPool());
             httpServer.createContext("/api/runline/stat", new StatHttpHandler(workspace));
-            httpServer.createContext("/api/runline/clear", new StatHttpHandler(workspace));
+            httpServer.createContext("/api/runline/clear", new ClearHttpHandler(workspace));
             httpServer.start();
         } catch (Exception e) {
             e.printStackTrace();

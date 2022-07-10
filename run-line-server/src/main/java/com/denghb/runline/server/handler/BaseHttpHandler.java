@@ -52,7 +52,7 @@ public class BaseHttpHandler implements HttpHandler {
             log.error("{}:{}", remoteHost, path);
             throw new IllegalArgumentException("Illegal Argument");
         }
-        log.info("{}:{}", remoteHost, path);
+        log.info("{}:{}", remoteHost, httpExchange.getRequestURI());
         // remove "/api"
         return path.replaceFirst("/api", "");
     }

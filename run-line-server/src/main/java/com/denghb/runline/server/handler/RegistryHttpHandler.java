@@ -4,6 +4,7 @@ import com.denghb.runline.server.RegistryHub;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.IOException;
+import java.util.Map;
 
 /**
  * 注册中心接口
@@ -12,13 +13,12 @@ public class RegistryHttpHandler extends BaseHttpHandler {
     @Override
     public void handle(HttpExchange httpExchange) throws IOException {
         String path = getPath(httpExchange);
+        Map<String, String> params = getParameters(httpExchange);
         String host = getRemoteHost(httpExchange);
-        String[] split = path.split("/");
 
-        String project = split[2];
-        String branch = split[3];
-        String packages = split[4];
-        String port = split[5];
+        String project = params.get("project");
+        String branch = params.get("branch");
+        String port = params.get("port");
 
         RegistryHub.register(project, branch, host, port);
 

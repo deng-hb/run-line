@@ -16,16 +16,15 @@ public class GitUtil {
 
     public static void checkout(String project, String branch) throws Exception {
         File file = getExistProject(project);
-        Git git = Git.open(file);
 
-        git.checkout()
-                .setCreateBranch(true)
-                .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
-                .setName(branch)
-                .setStartPoint("origin/" + branch)
-                .call();
-        git.getRepository().close();
-        git.close();
+        try (Git git = Git.open(file)) {
+            git.checkout()
+                    .setCreateBranch(true)
+                    .setUpstreamMode(CreateBranchCommand.SetupUpstreamMode.TRACK)
+                    .setName(branch)
+                    .setStartPoint("origin/" + branch)
+                    .call();
+        }
     }
 
     public static List<DiffEntry> diff(String project, String branch) throws Exception {
@@ -54,33 +53,31 @@ public class GitUtil {
 
     public static void clone(String project, String branch, String url) throws Exception {
         File file = getNotExistProject(project);
-        Git git = Git.cloneRepository()
+        try (Git git = Git.cloneRepository()
                 .setURI(url)
                 .setBare(false)
                 .setBranch(branch)
                 .setDirectory(file)
                 .setCloneAllBranches(true)
                 .setCloneSubmodules(true)
-                .call();
-        git.getRepository().close();
-        git.close();
+                .call()) {
+
+        }
     }
 
     public static void fetch(String project) throws Exception {
         File file = getExistProject(project);
-        Git git = Git.open(file);
-        git.fetch().call();
-        git.getRepository().close();
-        git.close();
+        try (Git git = Git.open(file)) {
+            git.fetch().call();
+        }
+
     }
 
     public static void pull(String project) throws Exception {
         File file = getExistProject(project);
-
-        Git git = Git.open(file);
-        git.pull().call();
-        git.getRepository().close();
-        git.close();
+        try (Git git = Git.open(file)) {
+            git.pull().call();
+        }
     }
 
     public static void del(String project) {
